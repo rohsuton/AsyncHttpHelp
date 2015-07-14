@@ -7,7 +7,7 @@
  * Date: 2015年7月13日 下午5:22:32
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp;
+package com.luoxudong.app.asynchttp;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,7 +24,7 @@ import org.apache.http.util.EntityUtils;
 import android.os.Handler;
 import android.os.Message;
 
-import com.luoxudong.app.asynchttp.asynchttp.callable.SimpleHttpRequestCallable;
+import com.luoxudong.app.asynchttp.callable.SimpleHttpRequestCallable;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
 

@@ -7,14 +7,14 @@
  * Date: 2015年7月13日 下午3:30:59
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp.callable;
+package com.luoxudong.app.asynchttp.callable;
 
 import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.cookie.Cookie;
 
-import com.luoxudong.app.asynchttp.asynchttp.model.BaseResponse;
+import com.luoxudong.app.asynchttp.model.BaseResponse;
 
 /** 
  * ClassName: SimpleJsonRequestCallable

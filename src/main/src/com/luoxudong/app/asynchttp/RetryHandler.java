@@ -7,7 +7,7 @@
  * Date: 2015年7月13日 下午4:54:42
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp;
+package com.luoxudong.app.asynchttp;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;

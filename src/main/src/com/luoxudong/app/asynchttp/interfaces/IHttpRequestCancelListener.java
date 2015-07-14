@@ -7,7 +7,7 @@
  * Date: 2015年7月13日 下午3:48:11
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp.interfaces;
+package com.luoxudong.app.asynchttp.interfaces;
 
 /** 
  * ClassName: IHttpRequestCancelListener

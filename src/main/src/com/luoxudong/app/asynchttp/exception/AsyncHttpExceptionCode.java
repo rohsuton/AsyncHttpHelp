@@ -28,7 +28,8 @@ public enum AsyncHttpExceptionCode {
 	socketTimeoutException(-10000 - 9),//socket超时
 	invalidJsonString(-10000 - 10),//无效的json字符串
 	sslPeerUnverifiedException(-10000 - 11),//不支持ssl协议
-	serviceAddrError(-10000 - 12);//服务器地址错误
+	buildRequestError(-10000 - 12),//构建请求异常
+	serviceAddrError(-10000 - 13);//服务器地址错误
 	
 	private AsyncHttpExceptionCode(int errorCode)
 	{

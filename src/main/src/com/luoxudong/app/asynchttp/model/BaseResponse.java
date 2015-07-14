@@ -7,7 +7,7 @@
  * Date: 2015年7月13日 下午3:05:38
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp.model;
+package com.luoxudong.app.asynchttp.model;
 
 import java.io.Serializable;
 

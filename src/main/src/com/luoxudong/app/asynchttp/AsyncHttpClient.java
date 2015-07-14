@@ -7,7 +7,7 @@
  * Date: 2015年7月13日 下午3:49:02
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp;
+package com.luoxudong.app.asynchttp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +43,7 @@ import com.luoxudong.app.threadpool.manager.ThreadTaskObject;
  * Date: 2015年7月13日 下午3:49:02
  */
 public class AsyncHttpClient {
-private static final String TAG = AsyncHttpClient.class.getSimpleName();
+	private static final String TAG = AsyncHttpClient.class.getSimpleName();
 	
 	private static DefaultHttpClient httpClient = null;
 	

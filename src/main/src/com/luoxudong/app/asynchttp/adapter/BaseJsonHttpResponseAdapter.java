@@ -7,10 +7,10 @@
  * Date: 2015年7月13日 下午3:12:00
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp.adapter;
+package com.luoxudong.app.asynchttp.adapter;
 
-import com.luoxudong.app.asynchttp.asynchttp.model.BaseResponse;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
+import com.luoxudong.app.asynchttp.model.BaseResponse;
 
 /** 
  * ClassName: BaseJsonHttpResponseAdapter

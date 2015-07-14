@@ -7,7 +7,7 @@
  * Date: 2015年7月13日 下午3:21:52
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp.callable;
+package com.luoxudong.app.asynchttp.callable;
 
 /** 
  * ClassName: BaseCallable

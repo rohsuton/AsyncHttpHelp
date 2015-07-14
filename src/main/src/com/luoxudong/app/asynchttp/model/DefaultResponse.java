@@ -7,7 +7,7 @@
  * Date: 2015年7月13日 下午3:09:55
  * Version: 1.0
  */
-package com.luoxudong.app.asynchttp.asynchttp.model;
+package com.luoxudong.app.asynchttp.model;
 
 
 /** 
