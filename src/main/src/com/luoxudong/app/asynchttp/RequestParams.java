@@ -20,6 +20,8 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.text.TextUtils;
+
 /** 
  * ClassName: RequestParams
  * Description:Http请求参数
@@ -56,8 +58,6 @@ public class RequestParams {
      * @param source
      */
     public void put(Map<String, String> urlParams) {
-        init();
-
         for(Map.Entry<String, String> entry : urlParams.entrySet()) {
             put(entry.getKey(), entry.getValue());
         }
@@ -103,30 +103,21 @@ public class RequestParams {
         mUrlParams.remove(key);
     }
 
-    @Override
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        
-        for(Map.Entry<String, String> entry : mUrlParams.entrySet()) {
-            if(result.length() > 0)
-                result.append("&");
-
-            result.append(entry.getKey());
-            result.append("=");
-            result.append(entry.getValue());
-        }
-
-        return result.toString();
-    }
-
    /**
      * Returns an HttpEntity containing all request parameters
      */
     public HttpEntity getEntity() {
-        HttpEntity entity = null;
+    	StringEntity entity = null;
 
         try {
+        	if (mRequestBody == null){
+        		mRequestBody = "";
+        	}
 			entity = new StringEntity(mRequestBody, AsyncHttpConst.HTTP_ENCODING);
+			
+			if (!TextUtils.isEmpty(mContentType)){
+				entity.setContentType(mContentType);
+			}
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}

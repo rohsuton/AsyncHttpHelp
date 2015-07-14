@@ -196,7 +196,8 @@ public class AsyncHttpTask extends ThreadTaskObject {
                 e.printStackTrace();
                 return;
                 //retry = retryHandler.retryRequest(cause, ++executionCount, httpContext);
-            } catch (NullPointerException e) {
+            } catch (Exception e) {
+            	//e.printStackTrace();
                 // there's a bug in HttpClient 4.0.x that on some occasions causes
                 // DefaultRequestExecutor to throw an NPE, see
                 // http://code.google.com/p/android/issues/detail?id=5255
@@ -422,7 +423,7 @@ public class AsyncHttpTask extends ThreadTaskObject {
     	
     	//设置连接超时
     	if (mRequestParams.getTimeout() > 0){
-    		mHttpRequest.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, mRequestParams.getTimeout());
+    		mHttpRequest.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, mRequestParams.getTimeout());
     	}
     	return true;
     }
@@ -440,7 +441,9 @@ public class AsyncHttpTask extends ThreadTaskObject {
 			}
 		}
 		
-		mHttpRequest.addHeader(AsyncHttpConst.HEADER_CONTENT_TYPE, contentType);
+		/*if (!TextUtils.isEmpty(contentType)){
+			mHttpRequest.addHeader(AsyncHttpConst.HEADER_CONTENT_TYPE, contentType);
+		}*/
 
 		return true;
 	}

@@ -13,6 +13,8 @@ import java.util.Map;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
 
+import android.text.TextUtils;
+
 import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
 import com.luoxudong.app.asynchttp.callable.SimpleHttpRequestCallable;
 import com.luoxudong.app.threadpool.constant.ThreadPoolConst;
@@ -39,10 +41,10 @@ public class AsyncHttpUtil {
 	}
 	
 	public static AsyncHttpRequest simplePostHttpRequest(String url, SimpleHttpRequestCallable callable){
-		return simplePostHttpRequest(url, null, null, null, 0, null, callable);
+		return simplePostHttpRequest(url, null, null, null, 0, null, null, callable);
 	}
 	
-	public static AsyncHttpRequest simplePostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, Map<String, String> cookieParams, int timeout, String requestBody, SimpleHttpRequestCallable callable){
+	public static AsyncHttpRequest simplePostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, Map<String, String> cookieParams, int timeout, String contentType, String requestBody, SimpleHttpRequestCallable callable){
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		RequestParams params = new RequestParams();
 		AsyncHttpResponseHandler handler = new AsyncHttpResponseHandler(callable);
@@ -59,11 +61,15 @@ public class AsyncHttpUtil {
 			params.setTimeout(timeout);
 		}
 		
+		if (!TextUtils.isEmpty(contentType)){
+			params.setContentType(contentType);
+		}
+		
 		if (requestBody != null){
 			params.setRequestBody(requestBody);
 		}
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.get(url, params, handler);
+		httpRequest.post(url, params, handler);
 		return httpRequest;
 	}
 }
