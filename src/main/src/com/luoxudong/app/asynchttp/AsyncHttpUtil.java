@@ -77,6 +77,10 @@ public class AsyncHttpUtil {
 		return httpRequest;
 	}
 	
+	public static <T extends Serializable, M extends BaseResponse<M>> AsyncHttpRequest jsonPostHttpRequest(String url, Map<String, String> headerParams, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
+		return jsonPostHttpRequest(url, null, headerParams, 0, AsyncHttpConst.HEADER_CONTENT_TYPE_JSON, requestInfo, responseClass, callable);
+	}
+	
 	public static <T extends Serializable, M extends BaseResponse<M>> AsyncHttpRequest jsonPostHttpRequest(String url, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
 		return jsonPostHttpRequest(url, null, null, 0, AsyncHttpConst.HEADER_CONTENT_TYPE_JSON, requestInfo, responseClass, callable);
 	}

@@ -29,10 +29,10 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
 	
 	private JsonRequestCallable<M> mJsonCallable = null;
 	
-	private BaseJsonHttpResponseAdapter responseAdapter = null;
+	/** 返回内容过滤 */
+	private BaseJsonHttpResponseAdapter mResponseAdapter = null;
 
-	public JsonResponseHandler(Class<M> responseClass, JsonRequestCallable<M> callable)
-	{
+	public JsonResponseHandler(Class<M> responseClass, JsonRequestCallable<M> callable) {
 		super(callable);
 		mJsonCallable = callable;
 		mResponseClass = responseClass;
@@ -44,9 +44,9 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
             try {
                 M jsonResponse = parseResponse(content);
                 
-				if (responseAdapter != null && !responseAdapter.checkResponseData(jsonResponse)) {// 返回的数据成功
-					int errorCode = responseAdapter.getErrorCode();
-					String errorMsg = responseAdapter.getErrorMsg();
+				if (mResponseAdapter != null && !mResponseAdapter.checkResponseData(jsonResponse)) {// 返回的数据成功
+					int errorCode = mResponseAdapter.getErrorCode();
+					String errorMsg = mResponseAdapter.getErrorMsg();
 					onFailure(errorCode, new AsyncHttpException(errorMsg + "[" + errorCode + "]"));
 				} else {
 					if (mJsonCallable != null) {
@@ -84,4 +84,13 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
 		}
 		return result;
     }
+
+	public BaseJsonHttpResponseAdapter getResponseAdapter() {
+		return mResponseAdapter;
+	}
+
+	public void setResponseAdapter(BaseJsonHttpResponseAdapter responseAdapter) {
+		mResponseAdapter = responseAdapter;
+	}
+    
 }
