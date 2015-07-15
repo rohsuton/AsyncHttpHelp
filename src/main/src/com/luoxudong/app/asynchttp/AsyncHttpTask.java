@@ -65,7 +65,7 @@ public class AsyncHttpTask extends ThreadTaskObject {
     private String mUrl = null;
     
     /** 结果回调 */
-    private AsyncHttpResponseHandler mResponseHandler = null;
+    private ResponseHandler mResponseHandler = null;
     
     /** 请求参数 */
     private RequestParams mRequestParams = null;
@@ -82,7 +82,7 @@ public class AsyncHttpTask extends ThreadTaskObject {
     
     private IHttpRequestCancelListener httpRequestCancelListener = null;
     
-	public AsyncHttpTask(int threadPoolType, AbstractHttpClient httpClient, HttpContext httpContext, String url, String requestMethodName, RequestParams requestParams, AsyncHttpResponseHandler responseHandler) {
+	public AsyncHttpTask(int threadPoolType, AbstractHttpClient httpClient, HttpContext httpContext, String url, String requestMethodName, RequestParams requestParams, ResponseHandler responseHandler) {
 		super(threadPoolType, null);
 		mHttpClient = httpClient;
 		mHttpContext = httpContext;
@@ -139,17 +139,10 @@ public class AsyncHttpTask extends ThreadTaskObject {
         if(!Thread.currentThread().isInterrupted()) {
         	try {
         		HttpResponse response = mHttpClient.execute(mHttpRequest, mHttpContext);
-        		
-        		CookieStore mCookieStore = mHttpClient.getCookieStore();
-        		List<Cookie> cookies = null;
-        		
-    			if (mCookieStore != null){
-    				cookies = mCookieStore.getCookies();
-    			}
     			
         		if(!Thread.currentThread().isInterrupted()) {
         			if(mResponseHandler != null) {
-        				mResponseHandler.sendResponseMessage(cookies, response);
+        				mResponseHandler.sendResponseMessage(mHttpClient.getCookieStore(), response);
         			}
         		} else{
         		}

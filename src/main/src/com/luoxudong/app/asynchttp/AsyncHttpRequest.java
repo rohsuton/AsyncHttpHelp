@@ -56,7 +56,7 @@ public class AsyncHttpRequest {
      * @param url
      * @param responseHandler
      */
-    public void get(String url, AsyncHttpResponseHandler responseHandler) {
+    public void get(String url, ResponseHandler responseHandler) {
     	get(url, null, responseHandler);
     }
 
@@ -66,7 +66,7 @@ public class AsyncHttpRequest {
      * @param params
      * @param responseHandler
      */
-    public void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+    public void get(String url, RequestParams params, ResponseHandler responseHandler) {
         sendRequest(mHttpClient, mHttpContext, url, HttpGet.METHOD_NAME, params, responseHandler);
     }
     
@@ -78,7 +78,7 @@ public class AsyncHttpRequest {
      * @param url
      * @param responseHandler
      */
-    public void post(String url, AsyncHttpResponseHandler responseHandler) {
+    public void post(String url, ResponseHandler responseHandler) {
         post(url, null, responseHandler);
     }
 
@@ -88,7 +88,7 @@ public class AsyncHttpRequest {
      * @param params
      * @param responseHandler
      */
-    public void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+    public void post(String url, RequestParams params, ResponseHandler responseHandler) {
     	sendRequest(mHttpClient, mHttpContext, url, HttpPost.METHOD_NAME, params, responseHandler);
     }
 
@@ -99,7 +99,7 @@ public class AsyncHttpRequest {
      * @param url
      * @param responseHandler
      */
-    public void put(String url, AsyncHttpResponseHandler responseHandler) {
+    public void put(String url, ResponseHandler responseHandler) {
         put(url, null, responseHandler);
     }
 
@@ -109,7 +109,7 @@ public class AsyncHttpRequest {
      * @param params
      * @param responseHandler
      */
-    public void put(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+    public void put(String url, RequestParams params, ResponseHandler responseHandler) {
     	sendRequest(mHttpClient, mHttpContext, url, HttpPut.METHOD_NAME, params, responseHandler);
     }
     
@@ -120,7 +120,7 @@ public class AsyncHttpRequest {
      * @param url
      * @param responseHandler
      */
-    public void delete(String url, AsyncHttpResponseHandler responseHandler) {
+    public void delete(String url, ResponseHandler responseHandler) {
         delete(url, null, responseHandler);
     }
 
@@ -130,7 +130,7 @@ public class AsyncHttpRequest {
      * @param params
      * @param responseHandler
      */
-    public void delete(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+    public void delete(String url, RequestParams params, ResponseHandler responseHandler) {
         sendRequest(mHttpClient, mHttpContext, url, HttpDelete.METHOD_NAME, params, responseHandler);
     }
     
@@ -141,7 +141,7 @@ public class AsyncHttpRequest {
      * @param url
      * @param responseHandler
      */
-    public void options(String url, AsyncHttpResponseHandler responseHandler) {
+    public void options(String url, ResponseHandler responseHandler) {
         delete(url, null, responseHandler);
     }
 
@@ -151,12 +151,12 @@ public class AsyncHttpRequest {
      * @param params
      * @param responseHandler
      */
-    public void options(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+    public void options(String url, RequestParams params, ResponseHandler responseHandler) {
         sendRequest(mHttpClient, mHttpContext, url, HttpOptions.METHOD_NAME, params, responseHandler);
     }
     
     // Private stuff
-    protected void sendRequest(DefaultHttpClient client, HttpContext httpContext, String url, String requestMethodName, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+    protected void sendRequest(DefaultHttpClient client, HttpContext httpContext, String url, String requestMethodName, RequestParams params, ResponseHandler responseHandler) {
     	mAsyncHttpTask = new AsyncHttpTask(mThreadPoolType, client, httpContext, url, requestMethodName, params, responseHandler);
     	//异步网络请求
     	mAsyncHttpTask.start();

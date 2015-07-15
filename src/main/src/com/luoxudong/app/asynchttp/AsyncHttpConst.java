@@ -23,7 +23,7 @@ public class AsyncHttpConst {
 	public static final int DEFAULT_SOCKET_TIMEOUT = 30 * 1000;
 	public static final int DEFAULT_MAX_RETRIES = 3;//请求失败时重复请求次数
 	public static final int DEFAULT_SOCKET_BUFFER_SIZE = 8192;
-	public static final String HEADER_CONTENT_TYPE = "Content-Type";
+	public static final String HEADER_CONTENT_TYPE_JSON = "application/json";
 	public static final String HEADER_ACCEPT_ENCODING = "Accept-Encoding";
 	public static final String ENCODING_GZIP = "gzip";
 	public static final String HTTP_ENCODING = "UTF-8";

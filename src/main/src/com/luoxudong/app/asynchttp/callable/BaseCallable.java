@@ -9,6 +9,11 @@
  */
 package com.luoxudong.app.asynchttp.callable;
 
+import java.util.List;
+
+import org.apache.http.Header;
+import org.apache.http.cookie.Cookie;
+
 /** 
  * ClassName: BaseCallable
  * Description:基础回调类
@@ -17,10 +22,26 @@ package com.luoxudong.app.asynchttp.callable;
  */
 public abstract class BaseCallable {
 	/**
-	 * 操作成功回调
-	 * @param obj 成功信息
+	 * 开始请求
 	 */
-	public void onSuccess(Object obj){};
+	public void onStart(){};
+	
+	/**
+	 * 请求结束
+	 */
+	public void onFinish(){};
+	
+	/**
+	 * 取消请求
+	 */
+	public void onCancel(){};
+	
+	/**
+	 * 返回成功
+	 * @param headers 返回的http头部信息
+	 * @param cookies 返回的cookie信息
+	 */
+	public void onSuccess(Header[] headers, List<Cookie> cookies){};
 	
 	/**
 	 * 操作失败回调

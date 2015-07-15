@@ -9,6 +9,7 @@
  */
 package com.luoxudong.app.asynchttp;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
@@ -16,7 +17,9 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import android.text.TextUtils;
 
 import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
-import com.luoxudong.app.asynchttp.callable.SimpleHttpRequestCallable;
+import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
+import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
+import com.luoxudong.app.asynchttp.model.BaseResponse;
 import com.luoxudong.app.threadpool.constant.ThreadPoolConst;
 
 /** 
@@ -40,14 +43,14 @@ public class AsyncHttpUtil {
 		AsyncHttpClient.setSSLSocketFactory(sslSocketFactory);
 	}
 	
-	public static AsyncHttpRequest simplePostHttpRequest(String url, SimpleHttpRequestCallable callable){
-		return simplePostHttpRequest(url, null, null, null, 0, null, null, callable);
+	public static AsyncHttpRequest simplePostHttpRequest(String url, SimpleRequestCallable callable){
+		return simplePostHttpRequest(url, null, null, 0, null, null, callable);
 	}
 	
-	public static AsyncHttpRequest simplePostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, Map<String, String> cookieParams, int timeout, String contentType, String requestBody, SimpleHttpRequestCallable callable){
+	public static AsyncHttpRequest simplePostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, String requestBody, SimpleRequestCallable callable){
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		RequestParams params = new RequestParams();
-		AsyncHttpResponseHandler handler = new AsyncHttpResponseHandler(callable);
+		ResponseHandler handler = new ResponseHandler(callable);
 		
 		if (headerParams != null) {
 			params.putHeaderParam(headerParams);
@@ -68,6 +71,44 @@ public class AsyncHttpUtil {
 		if (requestBody != null){
 			params.setRequestBody(requestBody);
 		}
+		
+		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
+		httpRequest.post(url, params, handler);
+		return httpRequest;
+	}
+	
+	public static <T extends Serializable, M extends BaseResponse<M>> AsyncHttpRequest jsonPostHttpRequest(String url, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
+		return jsonPostHttpRequest(url, null, null, 0, AsyncHttpConst.HEADER_CONTENT_TYPE_JSON, requestInfo, responseClass, callable);
+	}
+	
+	public static <T extends Serializable, M extends BaseResponse<M>> AsyncHttpRequest jsonPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
+		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
+		JsonRequestParams<T> params = new JsonRequestParams<T>();
+		
+		JsonResponseHandler<M> handler = new JsonResponseHandler<M>(responseClass, callable);
+		
+		if (mResponseAdapter != null){
+			handler.setResponseAdapter(mResponseAdapter);
+		}
+		
+		if (headerParams != null) {
+			params.putHeaderParam(headerParams);
+		}
+		
+		if (urlParams != null){
+			params.put(urlParams);
+		}
+		
+		if (timeout > 0){
+			params.setTimeout(timeout);
+		}
+		
+		if (!TextUtils.isEmpty(contentType)){
+			params.setContentType(contentType);
+		}
+		
+		params.setRequestJsonObj(requestInfo);
+		
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
 		httpRequest.post(url, params, handler);
 		return httpRequest;
