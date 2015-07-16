@@ -14,14 +14,12 @@ import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -29,7 +27,7 @@ import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.cookie.Cookie;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.HttpContext;
@@ -163,40 +161,12 @@ public class AsyncHttpTask extends ThreadTaskObject {
             try {
                 makeRequest();
                 return;
-            } catch (UnknownHostException e) {
-		        if(mResponseHandler != null) {
-		            mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.unknownHostException.getErrorCode(), e);
-		        }
-	        	return;
-            }catch (SocketException e){
-                // Added to detect host unreachable
-                if(mResponseHandler != null) {
-                	mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.httpSocketException.getErrorCode(), e);
-                }
-                return;
-            }catch (SocketTimeoutException e){
-                if(mResponseHandler != null) {
-                	mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.socketTimeoutException.getErrorCode(), e);
-                }
-                return;
-            } catch (AsyncHttpException e) {
-            	/*if(responseHandler != null) {
-                    responseHandler.sendFailureMessage(AsyncHttpExceptionCode.socketTimeoutException.getErrorCode(), e);
-                }
-                return;*/
-			} catch (IOException e) {
+            }catch (IOException e) {
                 cause = e;
-                e.printStackTrace();
-                return;
-                //retry = retryHandler.retryRequest(cause, ++executionCount, httpContext);
+                retry = retryHandler.retryRequest(cause, ++executionCount, mHttpContext);
             } catch (Exception e) {
-            	//e.printStackTrace();
-                // there's a bug in HttpClient 4.0.x that on some occasions causes
-                // DefaultRequestExecutor to throw an NPE, see
-                // http://code.google.com/p/android/issues/detail?id=5255
                 cause = new IOException("HttpClient空指针异常:" + e.getMessage());
-                //retry = retryHandler.retryRequest(cause, ++executionCount, httpContext);
-                return;
+                retry = retryHandler.retryRequest(cause, ++executionCount, mHttpContext);
             }
         }
 
@@ -246,51 +216,41 @@ public class AsyncHttpTask extends ThreadTaskObject {
 
 		AsyncHttpLog.i(TAG, "URL:" + mUrl);
 		try {
-			
-
 			makeRequestWithRetries();
 		} catch (IOException e) {
 			if (e.getCause() instanceof SSLPeerUnverifiedException) {
-				errorCode = AsyncHttpExceptionCode.sslPeerUnverifiedException
-						.getErrorCode();
+				errorCode = AsyncHttpExceptionCode.sslPeerUnverifiedException.getErrorCode();
 				errorMsg = "不支持ssl加密传输，切换到普通模式。";
-			} else {
-				errorCode = AsyncHttpExceptionCode.defaultExceptionCode
-						.getErrorCode();
-				errorMsg = e.toString();
+			} else if (e.getCause() instanceof UnknownHostException) {
+				errorCode = AsyncHttpExceptionCode.unknownHostException.getErrorCode();
+				errorMsg = e.getCause().getMessage();
+	        	return;
+            } else if (e.getCause() instanceof SocketException) {
+				errorCode = AsyncHttpExceptionCode.httpSocketException.getErrorCode();
+				errorMsg = e.getCause().getMessage();
+	        	return;
+            } else if (e.getCause() instanceof SocketTimeoutException) {
+				errorCode = AsyncHttpExceptionCode.socketTimeoutException.getErrorCode();
+				errorMsg = e.getCause().getMessage();
+	        	return;
+            } else if (e.getCause() instanceof ConnectTimeoutException) {
+				errorCode = AsyncHttpExceptionCode.connectTimeoutException.getErrorCode();
+				errorMsg = e.getCause().getMessage();
+	        	return;
+            } else if (e.getCause() instanceof IllegalStateException && e.getCause().getMessage() != null && e.getCause().getMessage().indexOf(" Target host must not be null") >= 0) {
+				errorCode = AsyncHttpExceptionCode.serviceAddrError.getErrorCode();
+				errorMsg = "服务器地址格式错误";
+	        	return;
+            } else {
+				errorCode = AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode();
+				errorMsg = e.getCause().getMessage();
 			}
-
-			if (httpRequestCancelListener != null) {
-				httpRequestCancelListener.onCanceled();
-			}
-
+			
 			if (mResponseHandler != null) {
-				mResponseHandler.sendFailureMessage(errorCode,
-						new AsyncHttpException(errorCode, errorMsg));
+				mResponseHandler.sendFailureMessage(errorCode, new AsyncHttpException(errorCode, errorMsg));
 			}
-		} catch (Exception e) {
-			String msg = null;
-			if (e instanceof IllegalStateException
-					&& e.toString() != null
-					&& e.toString().indexOf(" Target host must not be null") >= 0) {
-				errorCode = AsyncHttpExceptionCode.serviceAddrError
-						.getErrorCode();
-				msg = "服务器地址格式错误";
-			} else {
-				errorCode = AsyncHttpExceptionCode.defaultExceptionCode
-						.getErrorCode();
-				msg = e.toString();
-			}
-
-			if (mResponseHandler != null) {
-				mResponseHandler.sendFailureMessage(errorCode,
-						new AsyncHttpException(errorCode, msg));
-			}
-			e.printStackTrace();
-		}finally{
-			if (mResponseHandler != null) {
-				mResponseHandler.sendFinishMessage();// 请求结束
-			}
+			
+			e.getCause().printStackTrace();
 		}
 	}
     
@@ -427,16 +387,11 @@ public class AsyncHttpTask extends ThreadTaskObject {
      */
 	private boolean buildHttpHeader() {
 		Map<String, String> headers = mRequestParams.getHeaderParams();
-		String contentType = mRequestParams.getContentType();
 		if (headers != null && headers.size() > 0) {
 			for (String name : headers.keySet()) {
 				mHttpRequest.addHeader(name, headers.get(name));
 			}
 		}
-		
-		/*if (!TextUtils.isEmpty(contentType)){
-			mHttpRequest.addHeader(AsyncHttpConst.HEADER_CONTENT_TYPE, contentType);
-		}*/
 
 		return true;
 	}

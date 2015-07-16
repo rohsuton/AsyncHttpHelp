@@ -115,8 +115,8 @@ public class RequestParams {
         	}
 			entity = new StringEntity(mRequestBody, AsyncHttpConst.HTTP_ENCODING);
 			
-			if (!TextUtils.isEmpty(mContentType)){
-				entity.setContentType(mContentType);
+			if (!TextUtils.isEmpty(getContentType())){
+				entity.setContentType(getContentType());
 			}
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();

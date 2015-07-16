@@ -21,7 +21,7 @@ public class AsyncHttpConst {
 	public static final int MAX_CONNECTIONS = 200;//创建socket上线
 	public static final int MAX_PER_ROUTE = 30;//最大并发连接数
 	public static final int DEFAULT_SOCKET_TIMEOUT = 30 * 1000;
-	public static final int DEFAULT_MAX_RETRIES = 3;//请求失败时重复请求次数
+	public static final int DEFAULT_MAX_RETRIES = 1;//请求失败时重复请求次数
 	public static final int DEFAULT_SOCKET_BUFFER_SIZE = 8192;
 	public static final String HEADER_CONTENT_TYPE_JSON = "application/json";
 	public static final String HEADER_ACCEPT_ENCODING = "Accept-Encoding";

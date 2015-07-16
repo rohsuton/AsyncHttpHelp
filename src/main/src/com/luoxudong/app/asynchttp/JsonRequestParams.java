@@ -14,6 +14,8 @@ import java.io.UnsupportedEncodingException;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
 
+import android.text.TextUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
@@ -32,17 +34,23 @@ public class JsonRequestParams<T> extends RequestParams {
 	
 	@Override
 	public HttpEntity getEntity() {
+		StringEntity entity = null;
 		//不做unicode字符转义 
 		Gson gson = new GsonBuilder().disableHtmlEscaping().create();//new Gson();
     	String requestData = gson.toJson(getRequestJsonObj());
     	AsyncHttpLog.i(TAG, requestData);
     	try {
-			return new StringEntity(requestData, AsyncHttpConst.HTTP_ENCODING);
+    		entity = new StringEntity(requestData, AsyncHttpConst.HTTP_ENCODING);
+    		
+    		if (!TextUtils.isEmpty(getContentType())){
+				entity.setContentType(getContentType());
+			}
+    		
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
     	
-    	return null;
+    	return entity;
 	}
 
 	public T getRequestJsonObj() {

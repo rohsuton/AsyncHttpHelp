@@ -23,6 +23,7 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.util.EntityUtils;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 
 import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
@@ -55,27 +56,21 @@ public class ResponseHandler {
 
     protected SimpleRequestCallable mCallable = null;
     
-    private Handler handler = null;
+    private Handler mMainHandler = null;
     
 	public ResponseHandler(SimpleRequestCallable callable) {
 		mCallable = callable;
+		// 创建一个handler，把消息传送到主线程
+		if (Looper.myLooper() != null) {
+			mMainHandler = new Handler() {
+				@Override
+				public void handleMessage(Message msg) {
+					ResponseHandler.this.handleMessage(msg);
+				}
+			};
+
+		}
 	}
-    
-	/**
-     * Creates a new AsyncHttpResponseHandler
-     */
-    public ResponseHandler() {
-        // Set up a handler to post events back to the correct thread if possible
-        /*if(Looper.myLooper() != null) {
-            handler = new Handler(){
-                @Override
-                public void handleMessage(Message msg){
-                    AsyncHttpResponseHandler.this.handleMessage(msg);
-                }
-            };
-            
-        }*/
-    }
     
     /**
      * 请求返回结果统一入口
@@ -207,8 +202,8 @@ public class ResponseHandler {
     }
 
     protected void sendMessage(Message msg) {
-        if(handler != null){
-            handler.sendMessage(msg);
+        if(mMainHandler != null){
+        	mMainHandler.sendMessage(msg);
         } else {
             handleMessage(msg);
         }
@@ -216,8 +211,8 @@ public class ResponseHandler {
 
     protected Message obtainMessage(int responseMessage, Object response) {
         Message msg = null;
-        if(handler != null){
-            msg = this.handler.obtainMessage(responseMessage, response);
+        if(mMainHandler != null){
+            msg = mMainHandler.obtainMessage(responseMessage, response);
         }else{
             msg = Message.obtain();
             msg.what = responseMessage;

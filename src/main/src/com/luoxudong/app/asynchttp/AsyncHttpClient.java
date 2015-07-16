@@ -21,6 +21,7 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -59,6 +60,7 @@ public class AsyncHttpClient {
 		if (httpClient == null) {
 			AsyncHttpLog.i(TAG, "正在创建HttpClient对象");
 			BasicHttpParams httpParams = new BasicHttpParams();
+			httpParams.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false);
 			HttpConnectionParams.setSoTimeout(httpParams, AsyncHttpConst.DEFAULT_SOCKET_TIMEOUT);
 			HttpConnectionParams.setConnectionTimeout(httpParams, AsyncHttpConst.DEFAULT_SOCKET_TIMEOUT);
 			HttpConnectionParams.setTcpNoDelay(httpParams, true);

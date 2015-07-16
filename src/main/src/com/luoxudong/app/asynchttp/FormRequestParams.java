@@ -10,15 +10,18 @@
 package com.luoxudong.app.asynchttp;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.message.BasicNameValuePair;
 
-import com.luoxudong.app.asynchttp.mime.HttpMultipartMode;
-import com.luoxudong.app.asynchttp.mime.MultipartEntity;
-import com.luoxudong.app.asynchttp.mime.content.StringBody;
+import android.text.TextUtils;
 
 /** 
  * ClassName: FormRequestParams
@@ -33,30 +36,7 @@ public class FormRequestParams extends RequestParams {
 	public FormRequestParams() {
         init();
     }
-    
-    /**
-     * 带url参数的构造函数
-     * @param source
-     */
-    public FormRequestParams(Map<String, String> source) {
-        init();
-
-        for(Map.Entry<String, String> entry : source.entrySet()) {
-            put(entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
-     * 带一对键值参数的构造函数
-     * @param key
-     * @param value
-     */
-    public FormRequestParams(String key, String value) {
-        init();
-
-        put(key, value);
-    }
-    
+	
 	@Override
 	protected void init() {
 		super.init();
@@ -70,6 +50,16 @@ public class FormRequestParams extends RequestParams {
 	
 	/**
      * 添加form表单参数
+     * @param source
+     */
+    public void putFormParam(Map<String, String> source) {
+        for(Map.Entry<String, String> entry : source.entrySet()) {
+        	putFormParam(entry.getKey(), entry.getValue());
+        }
+    }
+    
+	/**
+     * 添加form表单参数
      * @param key 参数key
      * @param value 参数值
      */
@@ -81,19 +71,24 @@ public class FormRequestParams extends RequestParams {
     
     @Override
     public HttpEntity getEntity() {
-    	MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-    	StringBody stringBody = null;
-    	
-    	if (mFormParams != null){
+    	UrlEncodedFormEntity entity = null;
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		
+		if (mFormParams != null){
     		for(HashMap.Entry<String, String> entry : mFormParams.entrySet()) {
-        		try {
-    				stringBody = new StringBody(entry.getValue());
-    				multipartEntity.addPart(entry.getKey(), stringBody);
-    			} catch (UnsupportedEncodingException e) {
-    			}
-            }
-    	}
-    	
-		return multipartEntity;
+    			params.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+    		}
+		}
+		
+		try {
+			entity = new UrlEncodedFormEntity(params, AsyncHttpConst.HTTP_ENCODING);
+			
+			if (!TextUtils.isEmpty(getContentType())){
+				entity.setContentType(getContentType());
+			}
+		} catch (UnsupportedEncodingException e) {
+		}
+		
+		return entity;
     }
 }
