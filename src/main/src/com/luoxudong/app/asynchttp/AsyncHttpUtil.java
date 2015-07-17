@@ -17,9 +17,12 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import android.text.TextUtils;
 
 import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
+import com.luoxudong.app.asynchttp.callable.DownloadRequestCallable;
 import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
 import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
+import com.luoxudong.app.asynchttp.callable.UploadRequestCallable;
 import com.luoxudong.app.asynchttp.model.BaseResponse;
+import com.luoxudong.app.asynchttp.model.FileWrapper;
 import com.luoxudong.app.threadpool.constant.ThreadPoolConst;
 
 /** 
@@ -411,6 +414,60 @@ public class AsyncHttpUtil {
 		}
 		
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
+		httpRequest.post(url, params, handler);
+	}
+	
+	public static void download(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String fileDir, String fileName, Long endPos, DownloadRequestCallable callable){
+		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
+		DownloadRequestParams params = new DownloadRequestParams();
+		DownloadResponseHandler handler = new DownloadResponseHandler(callable);
+		
+		if (headerParams != null) {
+			params.putHeaderParam(headerParams);
+		}
+		
+		if (urlParams != null){
+			params.put(urlParams);
+		}
+		
+		if (timeout > 0){
+			params.setTimeout(timeout);
+		}
+		
+		params.setEndPos(endPos);
+		params.setFileDir(fileDir);
+		params.setFileName(fileName);
+		
+		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);
+		httpRequest.post(url, params, handler);
+	}
+	
+	public static void upload(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Map<String, String> formDatas, Map<String, FileWrapper> files, UploadRequestCallable callable){
+		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
+		UploadRequestParams params = new UploadRequestParams();
+		UploadResponseHandler handler = new UploadResponseHandler(callable);
+		
+		if (headerParams != null) {
+			params.putHeaderParam(headerParams);
+		}
+		
+		if (urlParams != null){
+			params.put(urlParams);
+		}
+		
+		if (timeout > 0){
+			params.setTimeout(timeout);
+		}
+		
+		if (formDatas != null){
+			params.putFormParam(formDatas);
+		}
+		
+		if (files != null){
+			params.putFileParam(files);
+		}
+		
+		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);
 		httpRequest.post(url, params, handler);
 	}
 }

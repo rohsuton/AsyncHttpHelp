@@ -29,6 +29,7 @@ import android.os.Message;
 import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
+import com.luoxudong.app.utils.LogUtil;
 
 /** 
  * ClassName: ResponseHandler
@@ -51,7 +52,7 @@ public class ResponseHandler {
     /** 请求完成 */
     protected static final int FINISH_MESSAGE = 3;
     
-    /** 终端请求 */
+    /** 中断请求 */
     protected static final int CANCEL_MESSAGE = 4;
 
     protected SimpleRequestCallable mCallable = null;
@@ -60,7 +61,7 @@ public class ResponseHandler {
     
 	public ResponseHandler(SimpleRequestCallable callable) {
 		mCallable = callable;
-		// 创建一个handler，把消息传送到主线程
+		// 检测当前线程是否有绑定looper，如果没有绑定则使用主线程的looper
 		if (Looper.myLooper() != null) {
 			mMainHandler = new Handler() {
 				@Override
@@ -68,7 +69,13 @@ public class ResponseHandler {
 					ResponseHandler.this.handleMessage(msg);
 				}
 			};
-
+		}else{
+			mMainHandler = new Handler(Looper.getMainLooper()){
+				@Override
+				public void handleMessage(Message msg) {
+					ResponseHandler.this.handleMessage(msg);
+				}
+			};
 		}
 	}
     
@@ -121,7 +128,7 @@ public class ResponseHandler {
     
     protected void handleMessage(Message msg) {
         Object[] response;
-
+        
         switch(msg.what) {
             case SUCCESS_MESSAGE:
                 response = (Object[])msg.obj;

@@ -11,10 +11,12 @@ package com.luoxudong.app.asynchttp.callable;
 
 
 /** 
+ * <pre>
  * ClassName: SimpleRequestCallable
- * Description:http普通请求回调
+ * Description:http普通请求回调，回调方法在UI线程中运行
  * Create by: 罗旭东
  * Date: 2015年7月13日 下午3:25:48
+ * </pre>
  */
 public abstract class SimpleRequestCallable extends BaseCallable {
 	/**

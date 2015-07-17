@@ -12,10 +12,12 @@ package com.luoxudong.app.asynchttp.callable;
 import com.luoxudong.app.asynchttp.model.BaseResponse;
 
 /** 
+ * <pre>
  * ClassName: JsonRequestCallable
- * Description:http普通json请求回调
+ * Description:http普通json请求回调，回调方法在UI线程中运行
  * Create by: 罗旭东
  * Date: 2015年7月13日 下午3:30:59
+ * </pre>
  */
 public abstract class JsonRequestCallable<M extends BaseResponse<M>>  extends SimpleRequestCallable {
 	/**

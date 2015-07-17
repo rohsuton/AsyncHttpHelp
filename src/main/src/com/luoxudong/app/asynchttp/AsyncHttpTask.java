@@ -93,22 +93,31 @@ public class AsyncHttpTask extends ThreadTaskObject {
 	@Override
 	public void run() {
 		AsyncHttpLog.i(TAG, "启动HTTP任务...");
+
 		if (isTaskCanceled) {
-			cancel();// 取消任务
+			if (httpRequestCancelListener != null) {
+				httpRequestCancelListener.onCanceled();
+			}
+
+			if (mResponseHandler != null) {
+				mResponseHandler.sendCancelMessage();
+				mResponseHandler.sendFinishMessage();
+			}
+
 			return;
 		}
-
+		
 		if (mRequestParams != null) {
 			if (mRequestParams instanceof UploadRequestParams) {//上传
 				uploadExecute();
+				return;
 			} else if (mRequestParams instanceof DownloadRequestParams) {//下载
 				downloadExecute();
-			} else {
-				execute();
+				return;
 			}
-		} else {
-			execute();
 		}
+		
+		execute();
 	}
 	
 	@Override
@@ -121,6 +130,10 @@ public class AsyncHttpTask extends ThreadTaskObject {
 
 		if (mResponseHandler != null) {
 			mResponseHandler.sendCancelMessage();
+		}
+		
+		if (httpRequestCancelListener != null) {
+			httpRequestCancelListener.onCanceled();
 		}
 	}
 	
@@ -183,22 +196,6 @@ public class AsyncHttpTask extends ThreadTaskObject {
      * @throws
      */
 	private void execute() {
-		if (mResponseHandler != null) {
-			mResponseHandler.sendStartMessage();// 开始请求
-		}
-		
-		if (isTaskCanceled) {
-			if (httpRequestCancelListener != null) {
-				httpRequestCancelListener.onCanceled();
-			}
-
-			if (mResponseHandler != null) {
-				mResponseHandler.sendCancelMessage();
-			}
-
-			return;
-		}
-
 		int errorCode = AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode();
 		String errorMsg = null;
 		if (!buildHttpRequest()){
@@ -216,6 +213,9 @@ public class AsyncHttpTask extends ThreadTaskObject {
 
 		AsyncHttpLog.i(TAG, "URL:" + mUrl);
 		try {
+			if (mResponseHandler != null) {
+				mResponseHandler.sendStartMessage();// 开始请求
+			}
 			makeRequestWithRetries();
 		} catch (IOException e) {
 			if (e.getCause() instanceof SSLPeerUnverifiedException) {
@@ -251,6 +251,10 @@ public class AsyncHttpTask extends ThreadTaskObject {
 			}
 			
 			e.getCause().printStackTrace();
+		}finally{
+			if (mResponseHandler != null) {
+				mResponseHandler.sendFinishMessage();//请求结束
+			}
 		}
 	}
     
@@ -262,81 +266,35 @@ public class AsyncHttpTask extends ThreadTaskObject {
      */
     protected void uploadExecute()
     {
-    	if (isTaskCanceled)
-		{
-			if (httpRequestCancelListener != null){
-    			httpRequestCancelListener.onCanceled();
-    		}
-    		
-    		if(mResponseHandler != null) {
-    			mResponseHandler.sendCancelMessage();
-            }
-    		
-			return;
-		}
-    	
-    	/*UploadRequestParams uploadRequestParams = (UploadRequestParams)mRequestParams;
-    	UploadHttpResponseHandler uploadHttpResponseHandler = (UploadHttpResponseHandler)responseHandler;
-    	
-    	if(uploadHttpResponseHandler != null) {//开始上传
-    		uploadHttpResponseHandler.sendStartTransferMessage();
-        }
-    	
-    	Map<String, String> paramsMap = new HashMap<String, String>();
-    	
-    	UploadData uploadData = new UploadData();
-    	
-    	long fileOffset = 0;
-    	long blockSize = -1;
-    	if (uploadRequestParams.isBreakpointsTransfer())
-    	{
-    		fileOffset = uploadRequestParams.getFileOffset();
-    		blockSize = uploadRequestParams.getFileSize() - fileOffset;
-    	}
-    	uploadData.setStartOffset(fileOffset);
-		uploadData.setBlockSize(blockSize);
-		uploadData.setUploadStringParams(paramsMap);
-		
-		abortRequest();//关闭上一次连接
-		uploadRequestParams.setUploadData(uploadData);
+    	UploadRequestParams uploadRequestParams = (UploadRequestParams)mRequestParams;
+		uploadRequestParams.setUploadResponseHandler((UploadResponseHandler)mResponseHandler);
 		execute();//上传文件数据
-*/    }
+    }
     
     /**
      * 
-     * @description:执行下载请求
+     * @description:执行下载请求，支持断点下载 
      * @return void
      * @throws
      */
     private void downloadExecute()
     {
-    	/*if (isTaskCanceled)
-		{
-    		if (httpRequestCancelListener != null){
-    			httpRequestCancelListener.onCanceled();
-    		}
-    		
-    		if(mResponseHandler != null) {
-    			mResponseHandler.sendCancelMessage();
-            }
-    		
-			return;
-		}
+    	DownloadRequestParams downloadRequestParams = (DownloadRequestParams)mRequestParams;
+    	DownloadResponseHandler downloadHttpResponseHandler = (DownloadResponseHandler)mResponseHandler;
     	
-    	DownloadRequestParams downloadRequestParams = (DownloadRequestParams)requestParams;
-    	DownloadHttpResponseHandler downloadHttpResponseHandler = (DownloadHttpResponseHandler)responseHandler;
+    	//设置断点下载参数
+    	String rangeValue = "bytes=" + downloadRequestParams.getStartPos() + "-";
     	
-    	if(downloadHttpResponseHandler != null) {//开始下载
-    		downloadHttpResponseHandler.sendStartTransferMessage();
-        }
+    	if (downloadRequestParams.getEndPos() > downloadRequestParams.getStartPos()){
+    		rangeValue += downloadRequestParams.getEndPos();
+    	}
     	
-		abortRequest();//关闭上一次连接
-		if (downloadRequestParams.isBreakpointsTransfer())//支持断点续传
-		{
-			downloadHttpResponseHandler.addDownloadRange(headers);//断点下载
-		}
+    	mRequestParams.putHeaderParam(AsyncHttpConst.HEADER_RANGE, rangeValue);
 		
-		execute();*/
+    	downloadHttpResponseHandler.setFileName(downloadRequestParams.getFileName());
+    	downloadHttpResponseHandler.setFileDir(downloadRequestParams.getFileDir());
+    	downloadHttpResponseHandler.setStartPos(downloadRequestParams.getStartPos());
+		execute();
     }
     
     
@@ -433,8 +391,7 @@ public class AsyncHttpTask extends ThreadTaskObject {
         return entity;
     }
     
-	public void setHttpRequestCancelListener(
-			IHttpRequestCancelListener httpRequestCancelListener) {
+	public void setHttpRequestCancelListener(IHttpRequestCancelListener httpRequestCancelListener) {
 		this.httpRequestCancelListener = httpRequestCancelListener;
 	}
 }

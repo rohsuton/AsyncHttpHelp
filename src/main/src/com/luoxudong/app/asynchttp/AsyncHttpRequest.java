@@ -185,8 +185,7 @@ public class AsyncHttpRequest {
 		new ThreadTaskObject(ThreadPoolConst.THREAD_TYPE_WORK, null) {
 			public void run() {
 				if (httpRequestCancelListener != null) {
-					mAsyncHttpTask
-							.setHttpRequestCancelListener(httpRequestCancelListener);
+					mAsyncHttpTask.setHttpRequestCancelListener(httpRequestCancelListener);
 				}
 				mAsyncHttpTask.cancel();
 			};
