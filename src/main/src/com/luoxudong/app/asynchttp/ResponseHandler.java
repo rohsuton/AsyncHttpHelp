@@ -29,7 +29,6 @@ import android.os.Message;
 import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
-import com.luoxudong.app.utils.LogUtil;
 
 /** 
  * ClassName: ResponseHandler
