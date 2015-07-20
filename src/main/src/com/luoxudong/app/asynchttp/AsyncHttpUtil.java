@@ -39,7 +39,7 @@ public class AsyncHttpUtil {
 	private static BaseJsonHttpResponseAdapter mResponseAdapter = null;
 	
 	/**
-	 * 设置json返回参数解析代理
+	 * 设置json返回参数解析规则
 	 * @param responseAdapter
 	 */
 	public static void setResponseAdapter(BaseJsonHttpResponseAdapter responseAdapter){
@@ -382,7 +382,7 @@ public class AsyncHttpUtil {
 	 * @param callable 返回结果回调
 	 */
 	public static void formDataPostHttpRequest(String url, Map<String, String> formDatas, SimpleRequestCallable callable){
-		
+		formDataPostHttpRequest(url, null, null, 0, formDatas, callable);
 	}
 	
 	/**
