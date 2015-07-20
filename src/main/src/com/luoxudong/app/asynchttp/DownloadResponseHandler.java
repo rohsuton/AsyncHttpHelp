@@ -126,10 +126,11 @@ public class DownloadResponseHandler extends ResponseHandler {
 		
 		long startPost = 0;
 		
-		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_PARTIAL_CONTENT)
-		{
-			AsyncHttpLog.w(TAG, "支持断点下载!");
+		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_PARTIAL_CONTENT) {
+			AsyncHttpLog.d(TAG, "支持断点下载!");
 			startPost = getStartPos();
+		}else{
+			AsyncHttpLog.w(TAG, "不支持断点下载!");
 		}
 		
 		sendStartTransferMessage();

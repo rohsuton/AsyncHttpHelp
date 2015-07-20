@@ -9,8 +9,10 @@
  */
 package com.luoxudong.app.asynchttp;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
 
@@ -417,7 +419,42 @@ public class AsyncHttpUtil {
 		httpRequest.post(url, params, handler);
 	}
 	
-	public static void download(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String fileDir, String fileName, Long endPos, DownloadRequestCallable callable){
+	/**
+	 * 普通下载
+	 * @param url 下载url
+	 * @param fileDir  本地保存目录
+	 * @param fileName 本地保存文件名
+	 * @param callable 下载回调方法
+	 */
+	public static void download(String url, String fileDir, String fileName, DownloadRequestCallable callable){
+		download(url, fileDir, fileName, 0, callable);
+	}
+	
+	/**
+	 * 断点下载
+	 * @param url 下载url
+	 * @param fileDir 本地保存目录
+	 * @param fileName 本地保存文件名
+	 * @param startPos 断点下载开始位置
+	 * @param callable 下载回调方法
+	 */
+	public static void download(String url, String fileDir, String fileName, long startPos, DownloadRequestCallable callable){
+		download(url, null, null, 0, fileDir, fileName, startPos, 0, callable);
+	}
+	
+	/**
+	 * 下载文件，支持断点续传
+	 * @param url 下载url
+	 * @param urlParams url中带的参数，会进行url编码
+	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
+	 * @param timeout 自定义连接超时时间
+	 * @param fileDir 本地保存目录
+	 * @param fileName 本地保存文件名
+	 * @param startPos 下载开始位置
+	 * @param endPos 下载结束位置
+	 * @param callable 下载回调方法
+	 */
+	public static void download(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String fileDir, String fileName, long startPos, long endPos, DownloadRequestCallable callable){
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		DownloadRequestParams params = new DownloadRequestParams();
 		DownloadResponseHandler handler = new DownloadResponseHandler(callable);
@@ -434,6 +471,7 @@ public class AsyncHttpUtil {
 			params.setTimeout(timeout);
 		}
 		
+		params.setStartPos(startPos);
 		params.setEndPos(endPos);
 		params.setFileDir(fileDir);
 		params.setFileName(fileName);
@@ -442,7 +480,45 @@ public class AsyncHttpUtil {
 		httpRequest.post(url, params, handler);
 	}
 	
-	public static void upload(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Map<String, String> formDatas, Map<String, FileWrapper> files, UploadRequestCallable callable){
+	/**
+	 * 单文件普通上传
+	 * @param url 上传地址
+	 * @param formDatas 表单参数
+	 * @param name 文件属性名
+	 * @param file 要上产的文件
+	 * @param callable 上传回调
+	 */
+	public static void upload(String url, Map<String, String> formDatas, String name, File file, UploadRequestCallable callable){
+		FileWrapper fileWrapper = new FileWrapper();
+		fileWrapper.setFile(file);
+		upload(url, formDatas, name, fileWrapper, callable);;
+	}
+	
+	/**
+	 * 单文件断点上传
+	 * @param url 上传地址
+	 * @param formDatas 表单参数
+	 * @param name 文件属性名
+	 * @param fileWrapper 要上传的文件信息
+	 * @param callable 上传回调
+	 */
+	public static void upload(String url, Map<String, String> formDatas, String name, FileWrapper fileWrapper, UploadRequestCallable callable){
+		Map<String, FileWrapper> fileWrappers = new ConcurrentHashMap<String, FileWrapper>();
+		fileWrappers.put(name, fileWrapper);
+		upload(url, null, null, 0, formDatas, fileWrappers, callable);
+	}
+	
+	/**
+	 * 文件上传，支持多文件断点续传
+	 * @param url 上传地址
+	 * @param urlParams url中带的参数，会进行url编码
+	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
+	 * @param timeout 自定义连接超时时间
+	 * @param formDatas 表单参数
+	 * @param fileWrappers 上传的文件列表
+	 * @param callable 上传回调
+	 */
+	public static void upload(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Map<String, String> formDatas, Map<String, FileWrapper> fileWrappers, UploadRequestCallable callable){
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		UploadRequestParams params = new UploadRequestParams();
 		UploadResponseHandler handler = new UploadResponseHandler(callable);
@@ -463,8 +539,8 @@ public class AsyncHttpUtil {
 			params.putFormParam(formDatas);
 		}
 		
-		if (files != null){
-			params.putFileParam(files);
+		if (fileWrappers != null){
+			params.putFileParam(fileWrappers);
 		}
 		
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);

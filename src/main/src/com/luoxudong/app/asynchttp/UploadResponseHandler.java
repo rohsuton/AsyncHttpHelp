@@ -61,10 +61,10 @@ public class UploadResponseHandler extends ResponseHandler {
 	 * 正在上传
 	 * @param name
 	 * @param totalLength
-	 * @param startPost
+	 * @param transferedLength
 	 */
-	protected void sendTransferingMessage(String name, long totalLength, long startPost) {
-        sendMessage(obtainMessage(FILE_TRANSFERING, new Object[]{name, totalLength, startPost}));
+	protected void sendTransferingMessage(String name, long totalLength, long transferedLength) {
+        sendMessage(obtainMessage(FILE_TRANSFERING, new Object[]{name, totalLength, transferedLength}));
     }
 	
 	/**
