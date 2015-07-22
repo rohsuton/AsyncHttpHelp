@@ -40,7 +40,7 @@ public class UploadResponseHandler extends ResponseHandler {
     protected static final int FILE_TRANSFER_SUC = 102;
     
     /** 传输缓存大小 */
-	protected static final int BUFFER_SIZE = 10 * 1024;
+	protected static final int BUFFER_SIZE = 20 * 1024;
     
 	/** 文件传输回调 */
 	private UploadRequestCallable mFileCallable = null;

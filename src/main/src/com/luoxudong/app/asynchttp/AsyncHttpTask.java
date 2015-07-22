@@ -224,23 +224,18 @@ public class AsyncHttpTask extends ThreadTaskObject {
 			} else if (e.getCause() instanceof UnknownHostException) {
 				errorCode = AsyncHttpExceptionCode.unknownHostException.getErrorCode();
 				errorMsg = e.getCause().getMessage();
-	        	return;
             } else if (e.getCause() instanceof SocketException) {
 				errorCode = AsyncHttpExceptionCode.httpSocketException.getErrorCode();
 				errorMsg = e.getCause().getMessage();
-	        	return;
             } else if (e.getCause() instanceof SocketTimeoutException) {
 				errorCode = AsyncHttpExceptionCode.socketTimeoutException.getErrorCode();
 				errorMsg = e.getCause().getMessage();
-	        	return;
             } else if (e.getCause() instanceof ConnectTimeoutException) {
 				errorCode = AsyncHttpExceptionCode.connectTimeoutException.getErrorCode();
 				errorMsg = e.getCause().getMessage();
-	        	return;
             } else if (e.getCause() instanceof IllegalStateException && e.getCause().getMessage() != null && e.getCause().getMessage().indexOf(" Target host must not be null") >= 0) {
 				errorCode = AsyncHttpExceptionCode.serviceAddrError.getErrorCode();
 				errorMsg = "服务器地址格式错误";
-	        	return;
             } else {
 				errorCode = AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode();
 				errorMsg = e.getCause().getMessage();

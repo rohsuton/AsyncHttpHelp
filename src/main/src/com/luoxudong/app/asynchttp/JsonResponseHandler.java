@@ -47,7 +47,7 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
 				if (mResponseAdapter != null && !mResponseAdapter.checkResponseData(jsonResponse)) {// 返回的数据成功
 					int errorCode = mResponseAdapter.getErrorCode();
 					String errorMsg = mResponseAdapter.getErrorMsg();
-					onFailure(errorCode, new AsyncHttpException(errorMsg + "[" + errorCode + "]"));
+					onFailure(errorCode, new AsyncHttpException(errorMsg));
 				} else {
 					if (mJsonCallable != null) {
 						mJsonCallable.onSuccess(jsonResponse);

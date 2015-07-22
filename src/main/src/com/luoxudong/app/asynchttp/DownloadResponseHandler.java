@@ -46,7 +46,7 @@ public class DownloadResponseHandler extends ResponseHandler {
     protected static final int FILE_TRANSFERING = 101;
     
     /** 传输缓存大小 */
-	protected static final int BUFFER_SIZE = 10 * 1024;
+	protected static final int BUFFER_SIZE = 200 * 1024;
     
 	/** 文件传输回调 */
 	private DownloadRequestCallable mFileCallable = null;

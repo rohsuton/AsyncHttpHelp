@@ -61,8 +61,8 @@ public class AsyncHttpClient {
 			AsyncHttpLog.i(TAG, "正在创建HttpClient对象");
 			BasicHttpParams httpParams = new BasicHttpParams();
 			httpParams.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false);
-			HttpConnectionParams.setSoTimeout(httpParams, AsyncHttpConst.DEFAULT_SOCKET_TIMEOUT);
-			HttpConnectionParams.setConnectionTimeout(httpParams, AsyncHttpConst.DEFAULT_SOCKET_TIMEOUT);
+			HttpConnectionParams.setSoTimeout(httpParams, AsyncHttpConst.DEFAULT_SO_TIMEOUT);
+			HttpConnectionParams.setConnectionTimeout(httpParams, AsyncHttpConst.DEFAULT_CONNECT_TIMEOUT);
 			HttpConnectionParams.setTcpNoDelay(httpParams, true);
 			HttpConnectionParams.setSocketBufferSize(httpParams, AsyncHttpConst.DEFAULT_SOCKET_BUFFER_SIZE);
 
