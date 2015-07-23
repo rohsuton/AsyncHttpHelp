@@ -133,6 +133,10 @@ public class DownloadResponseHandler extends ResponseHandler {
 			AsyncHttpLog.w(TAG, "不支持断点下载!");
 		}
 		
+		/*if (response.getStatusLine().getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY){
+			AsyncHttpLog.w(TAG, "跳转!");
+		}*/
+		
 		sendStartTransferMessage();
 		downloading(response, cookieStore, totalLength, startPost, localFile);
 	}
