@@ -16,6 +16,7 @@ package com.luoxudong.app.asynchttp;
  * Date: 2015年7月14日 下午12:00:25
  */
 public class DownloadRequestParams extends RequestParams {
+	@SuppressWarnings("unused")
 	private static final String TAG = DownloadRequestParams.class.getSimpleName();
 	
 	/** 本地保存的文件目录 */

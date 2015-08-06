@@ -175,11 +175,12 @@ public class AsyncHttpTask extends ThreadTaskObject {
                 makeRequest();
                 return;
             }catch (IOException e) {
-                cause = e;
+            	cause = e;
                 retry = retryHandler.retryRequest(cause, ++executionCount, mHttpContext);
             } catch (Exception e) {
-                cause = new IOException("HttpClient空指针异常:" + e.getMessage());
+            	cause = new IOException("HttpClient空指针异常:" + e.getMessage());
                 retry = retryHandler.retryRequest(cause, ++executionCount, mHttpContext);
+                
             }
         }
 

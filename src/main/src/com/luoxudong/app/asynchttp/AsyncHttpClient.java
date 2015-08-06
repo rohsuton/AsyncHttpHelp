@@ -149,8 +149,19 @@ public class AsyncHttpClient {
 	 */
 	public static void setSSLSocketFactory(SSLSocketFactory sslSocketFactory) {
 		if (sslSocketFactory != null){
+			if (httpClient == null){
+				getAsyncHttpClient();
+			}
 			httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme("https", sslSocketFactory, 443));
 		}
+	}
+	
+	public static void setEasySSLSocketFactory() {
+		if (httpClient == null){
+			getAsyncHttpClient();
+		}
+		
+		httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme("https", new EasySSLSocketFactory(), 443));
 	}
 	
 	public static void setUserAgent(String userAgent){

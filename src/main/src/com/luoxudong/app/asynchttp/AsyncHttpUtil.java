@@ -18,6 +18,8 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
 import com.luoxudong.app.asynchttp.callable.DownloadRequestCallable;
 import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
@@ -317,6 +319,23 @@ public class AsyncHttpUtil {
 	 */
 	public static <M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> formDatas, Class<M> responseClass, JsonRequestCallable<M> callable){
 		formPostHttpRequest(url, null, formDatas, responseClass, callable);
+	}
+	
+	/**
+	 * 发送form键值参数请求,请求参数以及返回结果都为对象
+	 * @param url 请求url地址
+	 * @param key 请求参数的key
+	 * @param requestInfo 请求参数对象
+	 * @param responseClass 返回结果类型
+	 * @param callable 返回结果回调
+	 */
+	public static <T extends Serializable, M extends BaseResponse<M>> void formPostHttpRequest(String url, String key, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
+		Gson gson = new GsonBuilder().disableHtmlEscaping().create();//new Gson();
+    	String requestData = gson.toJson(requestInfo);
+    	
+    	Map<String, String> formDatas = new ConcurrentHashMap<String, String>();
+    	formDatas.put(key, requestData);
+    	formPostHttpRequest(url, formDatas, responseClass, callable);
 	}
 	
 	/**
