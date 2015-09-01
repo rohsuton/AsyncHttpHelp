@@ -23,6 +23,8 @@ import org.apache.http.message.BasicNameValuePair;
 
 import android.text.TextUtils;
 
+import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
+
 /** 
  * ClassName: FormRequestParams
  * Description:表单请求参数
@@ -30,6 +32,8 @@ import android.text.TextUtils;
  * Date: 2015年7月14日 下午2:41:54
  */
 public class FormRequestParams extends RequestParams {
+	private static final String TAG = FormRequestParams.class.getSimpleName();
+	
 	/** 表单参数 */
 	protected Map<String, String> mFormParams = null;
 	
@@ -77,6 +81,7 @@ public class FormRequestParams extends RequestParams {
 		if (mFormParams != null){
     		for(HashMap.Entry<String, String> entry : mFormParams.entrySet()) {
     			params.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+    			AsyncHttpLog.i(TAG, entry.getKey() + ">>>>" + entry.getValue());
     		}
 		}
 		

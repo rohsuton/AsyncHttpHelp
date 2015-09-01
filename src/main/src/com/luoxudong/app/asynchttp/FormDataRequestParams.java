@@ -18,6 +18,7 @@ import org.apache.http.HttpEntity;
 import com.luoxudong.app.asynchttp.mime.HttpMultipartMode;
 import com.luoxudong.app.asynchttp.mime.MultipartEntity;
 import com.luoxudong.app.asynchttp.mime.content.StringBody;
+import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
 
 /** 
  * ClassName: EncodedFormRequestParams
@@ -26,6 +27,8 @@ import com.luoxudong.app.asynchttp.mime.content.StringBody;
  * Date: 2015年7月16日 上午11:43:29
  */
 public class FormDataRequestParams extends FormRequestParams {
+	private static final String TAG = FormDataRequestParams.class.getSimpleName();
+	
 	@Override
 	public HttpEntity getEntity() {
     	MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -36,6 +39,7 @@ public class FormDataRequestParams extends FormRequestParams {
         		try {
     				stringBody = new StringBody(entry.getValue(), Charset.forName(AsyncHttpConst.HTTP_ENCODING));
     				entity.addPart(entry.getKey(), stringBody);
+    				AsyncHttpLog.i(TAG, entry.getKey() + ">>>>" + entry.getValue());
     			} catch (UnsupportedEncodingException e) {
     			}
             }

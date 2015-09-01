@@ -330,12 +330,16 @@ public class AsyncHttpUtil {
 	 * @param callable 返回结果回调
 	 */
 	public static <T extends Serializable, M extends BaseResponse<M>> void formPostHttpRequest(String url, String key, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
+		formPostHttpRequest(url, null, key, requestInfo, responseClass, callable);
+	}
+	
+	public static <T extends Serializable, M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> headerParams, String key, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
 		Gson gson = new GsonBuilder().disableHtmlEscaping().create();//new Gson();
     	String requestData = gson.toJson(requestInfo);
     	
     	Map<String, String> formDatas = new ConcurrentHashMap<String, String>();
     	formDatas.put(key, requestData);
-    	formPostHttpRequest(url, formDatas, responseClass, callable);
+    	formPostHttpRequest(url, headerParams, formDatas, responseClass, callable);
 	}
 	
 	/**
@@ -496,7 +500,7 @@ public class AsyncHttpUtil {
 		params.setFileName(fileName);
 		
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);
-		httpRequest.post(url, params, handler);
+		httpRequest.get(url, params, handler);
 	}
 	
 	/**
