@@ -68,6 +68,9 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
 	 */
     protected M parseResponse(String responseBody) {
         M result = null;
+        if (responseBody == null){
+        	return null;
+        }
         responseBody = responseBody.trim();
 		Gson gson = new Gson();
 		if(responseBody.startsWith("{") || responseBody.startsWith("[")) {//合法的json字符串
@@ -79,9 +82,6 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
 			
 		}
 		
-		if (result == null) {
-			result = null;
-		}
 		return result;
     }
 
