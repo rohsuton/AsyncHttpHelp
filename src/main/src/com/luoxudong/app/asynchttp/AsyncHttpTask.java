@@ -343,7 +343,7 @@ public class AsyncHttpTask extends ThreadTaskObject {
 		Map<String, String> headers = mRequestParams.getHeaderParams();
 		if (headers != null && headers.size() > 0) {
 			for (String name : headers.keySet()) {
-				mHttpRequest.addHeader(name, headers.get(name));
+				mHttpRequest.setHeader(name, headers.get(name));
 			}
 		}
 

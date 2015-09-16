@@ -22,6 +22,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -61,22 +63,28 @@ public class AsyncHttpClient {
 			AsyncHttpLog.i(TAG, "正在创建HttpClient对象");
 			BasicHttpParams httpParams = new BasicHttpParams();
 			httpParams.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false);
+			//httpParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 			HttpConnectionParams.setSoTimeout(httpParams, AsyncHttpConst.DEFAULT_SO_TIMEOUT);
 			HttpConnectionParams.setConnectionTimeout(httpParams, AsyncHttpConst.DEFAULT_CONNECT_TIMEOUT);
-			HttpConnectionParams.setTcpNoDelay(httpParams, true);
+			//HttpConnectionParams.setTcpNoDelay(httpParams, true);
 			HttpConnectionParams.setSocketBufferSize(httpParams, AsyncHttpConst.DEFAULT_SOCKET_BUFFER_SIZE);
-
+			
 			HttpProtocolParams.setVersion(httpParams, HttpVersion.HTTP_1_1);
 			HttpProtocolParams.setUserAgent(httpParams, AsyncHttpConst.sUserAgent);
 			HttpProtocolParams.setContentCharset(httpParams, AsyncHttpConst.HTTP_ENCODING);
-
+			
+			ConnPerRouteBean connPerRouteBean = new ConnPerRouteBean(AsyncHttpConst.MAX_PER_ROUTE);
+			
+			ConnManagerParams.setMaxTotalConnections(httpParams, AsyncHttpConst.MAX_CONNECTIONS);
+			ConnManagerParams.setMaxConnectionsPerRoute(httpParams, connPerRouteBean);
+			
 			SchemeRegistry schemeRegistry = new SchemeRegistry();
 			schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 	        schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
 	        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(httpParams, schemeRegistry);
 	        
 			httpClient = new DefaultHttpClient(cm, httpParams);
-
+			
 			// HTTP协议请求拦截器
 			httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
 				@Override
