@@ -11,6 +11,12 @@ package com.luoxudong.app.asynchttp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
@@ -78,9 +84,24 @@ public class AsyncHttpClient {
 			ConnManagerParams.setMaxTotalConnections(httpParams, AsyncHttpConst.MAX_CONNECTIONS);
 			ConnManagerParams.setMaxConnectionsPerRoute(httpParams, connPerRouteBean);
 			
+			SSLSocketFactory sf = null;
+			try {
+				KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+				trustStore.load(null, null);
+				sf = new SSLSocketFactoryEx(trustStore);
+				sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER); // 允许所有主机的验证
+			} catch (KeyStoreException e) {
+			} catch (NoSuchAlgorithmException e) {
+			} catch (CertificateException e) {
+			} catch (IOException e) {
+			} catch (KeyManagementException e) {
+			} catch (UnrecoverableKeyException e) {
+			}
+			
 			SchemeRegistry schemeRegistry = new SchemeRegistry();
 			schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-	        schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
+			schemeRegistry.register(new Scheme("https", sf == null ? new EasySSLSocketFactory() : sf, 443));
+			
 	        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(httpParams, schemeRegistry);
 	        
 			httpClient = new DefaultHttpClient(cm, httpParams);
