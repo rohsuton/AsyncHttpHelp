@@ -343,7 +343,15 @@ public class AsyncHttpTask extends ThreadTaskObject {
 		Map<String, String> headers = mRequestParams.getHeaderParams();
 		if (headers != null && headers.size() > 0) {
 			for (String name : headers.keySet()) {
-				mHttpRequest.setHeader(name, headers.get(name));
+				if ("Cookie".equals(name)){//多个cookie信息
+					String[] cookieValues = headers.get(name).split(",");
+					
+					for (String value : cookieValues){
+						mHttpRequest.addHeader("Cookie", value);
+					}
+				}else{
+					mHttpRequest.setHeader(name, headers.get(name));
+				}
 			}
 		}
 

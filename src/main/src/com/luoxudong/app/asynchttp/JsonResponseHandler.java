@@ -11,7 +11,7 @@ package com.luoxudong.app.asynchttp;
 
 import org.apache.http.HttpStatus;
 
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSON;
 import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
 import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpException;
@@ -72,10 +72,9 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
         	return null;
         }
         responseBody = responseBody.trim();
-		Gson gson = new Gson();
 		if(responseBody.startsWith("{") || responseBody.startsWith("[")) {//合法的json字符串
 			try {
-				result = gson.fromJson(responseBody, mResponseClass);
+				result = JSON.parseObject(responseBody, mResponseClass);
 			} catch (Exception e) {
 				throw new AsyncHttpException(AsyncHttpExceptionCode.jsonParseException.getErrorCode(), e);
 			}

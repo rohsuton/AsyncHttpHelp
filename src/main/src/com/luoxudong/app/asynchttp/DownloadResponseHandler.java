@@ -21,6 +21,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpResponseException;
 
 import android.os.Message;
 
@@ -69,6 +70,12 @@ public class DownloadResponseHandler extends ResponseHandler {
 	protected void sendResponseMessage(CookieStore cookieStore, HttpResponse response) {
 		long totalLength = 0;//更新下载文件总长度
 		HttpEntity httpEntity = response.getEntity();
+		StatusLine status = response.getStatusLine();
+		
+		if(status.getStatusCode() >= 300) {
+            sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), new HttpResponseException(status.getStatusCode(), status.getReasonPhrase()));
+            return;
+		}
 		
 		if (httpEntity.isChunked()) {//Chunked解码
 			//这里有一个bug，Chunked解码的结果，无法通过这种方法获取实际长度

@@ -18,7 +18,7 @@ import android.os.Build;
  * Date: 2015年7月13日 下午3:49:49
  */
 public class AsyncHttpConst {
-	public static final int MAX_CONNECTIONS = 200;//创建socket上线
+	public static final int MAX_CONNECTIONS = 50;//创建socket上线
 	public static final int MAX_PER_ROUTE = 30;//最大并发连接数
 	public static final int DEFAULT_SO_TIMEOUT = 30 * 1000;//读数据超时时间
 	public static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;//连接超时时间

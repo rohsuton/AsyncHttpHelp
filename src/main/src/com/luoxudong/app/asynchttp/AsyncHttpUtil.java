@@ -18,8 +18,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import android.text.TextUtils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.alibaba.fastjson.JSON;
 import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
 import com.luoxudong.app.asynchttp.callable.DownloadRequestCallable;
 import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
@@ -334,8 +333,7 @@ public class AsyncHttpUtil {
 	}
 	
 	public static <T extends Serializable, M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> headerParams, String key, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
-		Gson gson = new GsonBuilder().disableHtmlEscaping().create();//new Gson();
-    	String requestData = gson.toJson(requestInfo);
+		String requestData = JSON.toJSONString(requestInfo);
     	
     	Map<String, String> formDatas = new ConcurrentHashMap<String, String>();
     	formDatas.put(key, requestData);

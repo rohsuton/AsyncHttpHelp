@@ -11,12 +11,6 @@ package com.luoxudong.app.asynchttp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
@@ -63,16 +57,16 @@ public class AsyncHttpClient {
 	 * @return HttpClient
 	 * @throws
 	 */
-	public static synchronized DefaultHttpClient getAsyncHttpClient()
-	{
+	public static synchronized DefaultHttpClient getAsyncHttpClient(){
 		if (httpClient == null) {
 			AsyncHttpLog.i(TAG, "正在创建HttpClient对象");
 			BasicHttpParams httpParams = new BasicHttpParams();
 			httpParams.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false);
+			
 			//httpParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 			HttpConnectionParams.setSoTimeout(httpParams, AsyncHttpConst.DEFAULT_SO_TIMEOUT);
 			HttpConnectionParams.setConnectionTimeout(httpParams, AsyncHttpConst.DEFAULT_CONNECT_TIMEOUT);
-			//HttpConnectionParams.setTcpNoDelay(httpParams, true);
+			HttpConnectionParams.setTcpNoDelay(httpParams, true);
 			HttpConnectionParams.setSocketBufferSize(httpParams, AsyncHttpConst.DEFAULT_SOCKET_BUFFER_SIZE);
 			
 			HttpProtocolParams.setVersion(httpParams, HttpVersion.HTTP_1_1);
@@ -84,23 +78,9 @@ public class AsyncHttpClient {
 			ConnManagerParams.setMaxTotalConnections(httpParams, AsyncHttpConst.MAX_CONNECTIONS);
 			ConnManagerParams.setMaxConnectionsPerRoute(httpParams, connPerRouteBean);
 			
-			SSLSocketFactory sf = null;
-			try {
-				KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-				trustStore.load(null, null);
-				sf = new SSLSocketFactoryEx(trustStore);
-				sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER); // 允许所有主机的验证
-			} catch (KeyStoreException e) {
-			} catch (NoSuchAlgorithmException e) {
-			} catch (CertificateException e) {
-			} catch (IOException e) {
-			} catch (KeyManagementException e) {
-			} catch (UnrecoverableKeyException e) {
-			}
-			
 			SchemeRegistry schemeRegistry = new SchemeRegistry();
 			schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-			schemeRegistry.register(new Scheme("https", sf == null ? new EasySSLSocketFactory() : sf, 443));
+			schemeRegistry.register(new Scheme("https", DefaultSSLSocketFactory.getSocketFactory(), 443));
 			
 	        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(httpParams, schemeRegistry);
 	        
@@ -110,9 +90,7 @@ public class AsyncHttpClient {
 			httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
 				@Override
 				public void process(HttpRequest request, HttpContext context) {
-					if (!request.containsHeader(AsyncHttpConst.HEADER_ACCEPT_ENCODING)) {
-						request.addHeader(AsyncHttpConst.HEADER_ACCEPT_ENCODING, AsyncHttpConst.ENCODING_GZIP);
-					}
+					request.setHeader(AsyncHttpConst.HEADER_ACCEPT_ENCODING, AsyncHttpConst.ENCODING_GZIP);
 				}
 			});
 

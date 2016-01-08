@@ -16,8 +16,7 @@ import org.apache.http.entity.StringEntity;
 
 import android.text.TextUtils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.alibaba.fastjson.JSON;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
 
 /** 
@@ -35,9 +34,7 @@ public class JsonRequestParams<T> extends RequestParams {
 	@Override
 	public HttpEntity getEntity() {
 		StringEntity entity = null;
-		//不做unicode字符转义 
-		Gson gson = new GsonBuilder().disableHtmlEscaping().create();//new Gson();
-    	String requestData = gson.toJson(getRequestJsonObj());
+    	String requestData = JSON.toJSONString(getRequestJsonObj());
     	AsyncHttpLog.i(TAG, requestData);
     	try {
     		entity = new StringEntity(requestData, AsyncHttpConst.HTTP_ENCODING);
