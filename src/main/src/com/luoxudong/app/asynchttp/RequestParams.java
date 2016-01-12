@@ -34,12 +34,18 @@ public class RequestParams {
 	
 	/** http头参数  */
 	protected Map<String, String> mHeaderParams = null;
+	
+	/** Cookie内容 */
+	protected Map<String, String> mCookies = null;
     
 	/** http请求内容体 */
 	protected String mRequestBody = null;
 	
 	/** 自定义连接超时时间 */
-    private int mTimeout = 0;
+    private int mConnectTimeout = 0;
+
+    /** 读取数据超时时间 */
+    private int mReadTimeout = 0;
     
     /** 请求类型 */
     private String mContentType = null;
@@ -51,11 +57,12 @@ public class RequestParams {
     protected void init(){
         mUrlParams = new ConcurrentHashMap<String, String>();
         mHeaderParams = new ConcurrentHashMap<String, String>();
+        mCookies = new ConcurrentHashMap<String, String>();
     }
 
     /**
      * 添加url参数
-     * @param source
+     * @param urlParams
      */
     public void put(Map<String, String> urlParams) {
         for(Map.Entry<String, String> entry : urlParams.entrySet()) {
@@ -81,6 +88,19 @@ public class RequestParams {
      */
     public void putHeaderParam(String key, String value){
         if(key != null && value != null) {
+        	if (AsyncHttpConst.HEADER_COOKIE.equals(key)){//提取cookie值
+        		String[] cookieValues = value.split(",");
+				
+				for (String cookieValue : cookieValues){
+					if (!TextUtils.isEmpty(cookieValue)){
+						String[] values = cookieValue.split("=");
+						if (values.length > 1){
+							putCookies(values[0], values[1]);
+						}
+						
+					}
+				}
+        	}
             mHeaderParams.put(key, value);
         }
     }
@@ -92,6 +112,27 @@ public class RequestParams {
     public void putHeaderParam(Map<String, String> headerParams){
     	for(Map.Entry<String, String> entry : headerParams.entrySet()) {
     		putHeaderParam(entry.getKey(), entry.getValue());
+        }
+    }
+    
+    /**
+     * 设置cookie
+     * @param key
+     * @param value
+     */
+    public void putCookies(String key, String value){
+    	if(key != null && value != null) {
+            mCookies.put(key, value);
+        }
+    }
+    
+    /**
+     * 设置cookie
+     * @param cookies
+     */
+    public void putCookies(Map<String, String> cookies){
+    	for(Map.Entry<String, String> entry : cookies.entrySet()) {
+    		putCookies(entry.getKey(), entry.getValue());
         }
     }
     
@@ -114,7 +155,7 @@ public class RequestParams {
         		mRequestBody = "";
         	}
 			entity = new StringEntity(mRequestBody, AsyncHttpConst.HTTP_ENCODING);
-			
+
 			if (!TextUtils.isEmpty(getContentType())){
 				entity.setContentType(getContentType());
 			}
@@ -150,14 +191,28 @@ public class RequestParams {
 	public Map<String, String> getHeaderParams() {
 		return mHeaderParams;
 	}
-
-	public int getTimeout() {
-		return mTimeout;
+	
+	public Map<String, String> getCookies() {
+		return mCookies;
 	}
 
-	public void setTimeout(int timeout) {
-		mTimeout = timeout;
+	public int getConnectTimeout() {
+        return mConnectTimeout;
 	}
+
+	public void setConnectTimeout(int connectTimeout) {
+        mConnectTimeout = connectTimeout;
+	}
+
+    public int getReadTimeout() {
+        return mReadTimeout;
+    }
+
+    public void setReadTimeout(int readTimeout) {
+        mReadTimeout = readTimeout;
+    }
+
+    //mReadTimeout
 
 	public String getContentType() {
 		return mContentType;

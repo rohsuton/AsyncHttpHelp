@@ -35,8 +35,8 @@ import org.apache.http.protocol.HttpContext;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpException;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
 import com.luoxudong.app.asynchttp.interfaces.IHttpRequestCancelListener;
+import com.luoxudong.app.asynchttp.threadpool.manager.AsyncHttpTaskObject;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
-import com.luoxudong.app.threadpool.manager.ThreadTaskObject;
 
 /** 
  * ClassName: AsyncHttpTask
@@ -44,7 +44,7 @@ import com.luoxudong.app.threadpool.manager.ThreadTaskObject;
  * Create by: 罗旭东
  * Date: 2015年7月13日 下午5:01:39
  */
-public class AsyncHttpTask extends ThreadTaskObject {
+public class AsyncHttpTask extends AsyncHttpTaskObject {
 	private static final String TAG = AsyncHttpTask.class.getSimpleName();
 	
 	/** httpclient对象 */
@@ -260,8 +260,7 @@ public class AsyncHttpTask extends ThreadTaskObject {
      * @return void
      * @throws
      */
-    protected void uploadExecute()
-    {
+    protected void uploadExecute() {
     	UploadRequestParams uploadRequestParams = (UploadRequestParams)mRequestParams;
 		uploadRequestParams.setUploadResponseHandler((UploadResponseHandler)mResponseHandler);
 		execute();//上传文件数据
@@ -273,8 +272,7 @@ public class AsyncHttpTask extends ThreadTaskObject {
      * @return void
      * @throws
      */
-    private void downloadExecute()
-    {
+    private void downloadExecute() {
     	DownloadRequestParams downloadRequestParams = (DownloadRequestParams)mRequestParams;
     	DownloadResponseHandler downloadHttpResponseHandler = (DownloadResponseHandler)mResponseHandler;
     	
@@ -329,9 +327,14 @@ public class AsyncHttpTask extends ThreadTaskObject {
     	}
     	
     	//设置连接超时
-    	if (mRequestParams.getTimeout() > 0){
-    		mHttpRequest.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, mRequestParams.getTimeout());
+    	if (mRequestParams.getConnectTimeout() > 0){
+    		mHttpRequest.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, mRequestParams.getConnectTimeout());
     	}
+
+		//设置读写时间
+		if (mRequestParams.getReadTimeout() > 0){
+			mHttpRequest.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, mRequestParams.getReadTimeout());
+		}
     	return true;
     }
     
@@ -343,15 +346,15 @@ public class AsyncHttpTask extends ThreadTaskObject {
 		Map<String, String> headers = mRequestParams.getHeaderParams();
 		if (headers != null && headers.size() > 0) {
 			for (String name : headers.keySet()) {
-				if ("Cookie".equals(name)){//多个cookie信息
-					String[] cookieValues = headers.get(name).split(",");
-					
-					for (String value : cookieValues){
-						mHttpRequest.addHeader("Cookie", value);
-					}
-				}else{
-					mHttpRequest.setHeader(name, headers.get(name));
-				}
+				mHttpRequest.setHeader(name, headers.get(name));
+			}
+		}
+		
+		//添加cookie
+		Map<String, String> cookies = mRequestParams.getCookies();
+		if (cookies != null && cookies.size() > 0) {
+			for (String name : cookies.keySet()) {
+				mHttpRequest.addHeader(AsyncHttpConst.HEADER_COOKIE, name + "=" + cookies.get(name));
 			}
 		}
 

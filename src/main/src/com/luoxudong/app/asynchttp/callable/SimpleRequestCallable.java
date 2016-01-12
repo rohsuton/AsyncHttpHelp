@@ -18,7 +18,7 @@ package com.luoxudong.app.asynchttp.callable;
  * Date: 2015年7月13日 下午3:25:48
  * </pre>
  */
-public abstract class SimpleRequestCallable extends BaseCallable {
+public abstract class SimpleRequestCallable extends RequestCallable {
 	/**
 	 * 返回普通文本内容
 	 * @param responseInfo

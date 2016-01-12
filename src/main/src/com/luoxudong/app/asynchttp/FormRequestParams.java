@@ -81,13 +81,13 @@ public class FormRequestParams extends RequestParams {
 		if (mFormParams != null){
     		for(HashMap.Entry<String, String> entry : mFormParams.entrySet()) {
     			params.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
-    			AsyncHttpLog.i(TAG, entry.getKey() + ">>>>" + entry.getValue());
+    			AsyncHttpLog.i(TAG, "请求参数：" + entry.getKey() + "=" + entry.getValue());
     		}
 		}
 		
 		try {
 			entity = new UrlEncodedFormEntity(params, AsyncHttpConst.HTTP_ENCODING);
-			
+
 			if (!TextUtils.isEmpty(getContentType())){
 				entity.setContentType(getContentType());
 			}

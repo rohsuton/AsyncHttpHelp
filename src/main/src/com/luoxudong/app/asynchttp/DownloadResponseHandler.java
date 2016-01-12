@@ -219,8 +219,7 @@ public class DownloadResponseHandler extends ResponseHandler {
 			e.printStackTrace();
 		} catch (SocketException e) {
 			sendFailureMessage(AsyncHttpExceptionCode.httpSocketException.getErrorCode(), e);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			sendFailureMessage(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode(), e);
 			e.printStackTrace();
 		} finally {

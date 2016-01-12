@@ -54,6 +54,9 @@ public class ResponseHandler {
     /** 中断请求 */
     protected static final int CANCEL_MESSAGE = 4;
 
+    /** 返回结果是否在主线程中执行 */
+    private boolean mMainThread = true;
+    
     protected SimpleRequestCallable mCallable = null;
     
     private Handler mMainHandler = null;
@@ -61,6 +64,7 @@ public class ResponseHandler {
 	public ResponseHandler(SimpleRequestCallable callable) {
 		mCallable = callable;
 		// 检测当前线程是否有绑定looper，如果没有绑定则使用主线程的looper
+
 		if (Looper.myLooper() != null) {
 			mMainHandler = new Handler() {
 				@Override
@@ -68,24 +72,31 @@ public class ResponseHandler {
 					ResponseHandler.this.handleMessage(msg);
 				}
 			};
-		}else{
-			mMainHandler = new Handler(Looper.getMainLooper()){
+		} else {
+			mMainHandler = new Handler(Looper.getMainLooper()) {
 				@Override
 				public void handleMessage(Message msg) {
 					ResponseHandler.this.handleMessage(msg);
 				}
 			};
 		}
+		
 	}
     
     /**
      * 请求返回结果统一入口
-     * @param cookies
+     * @param cookieStore
      * @param response
      */
     protected void sendResponseMessage(CookieStore cookieStore, HttpResponse response) {
          StatusLine status = response.getStatusLine();
          String responseBody = null;
+         
+         if(status.getStatusCode() >= 300) {
+             sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), new HttpResponseException(status.getStatusCode(), status.getReasonPhrase()));
+             return;
+ 		}
+         
          try {
              HttpEntity entity = null;
              HttpEntity temp = response.getEntity();
@@ -96,16 +107,13 @@ public class ResponseHandler {
              }
          } catch(IOException e) {
          	sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), e);
+         	return;
          }
 
-         if(status.getStatusCode() >= 300) {
-             sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), new HttpResponseException(status.getStatusCode(), status.getReasonPhrase()));
-         } else {
-             sendSuccessMessage(status.getStatusCode(), response.getAllHeaders(), cookieStore, responseBody);
-         }
+         sendSuccessMessage(status.getStatusCode(), response.getAllHeaders(), cookieStore, responseBody);
      }
     
-    protected void sendSuccessMessage(int statusCode, Header[] headers, CookieStore cookieStore, String responseBody) {
+    protected void sendSuccessMessage(int statusCode, Header[] headers, CookieStore cookieStore, Object responseBody) {
         sendMessage(obtainMessage(SUCCESS_MESSAGE, new Object[]{statusCode, headers, cookieStore, responseBody}));
     }
 
@@ -131,7 +139,7 @@ public class ResponseHandler {
         switch(msg.what) {
             case SUCCESS_MESSAGE:
                 response = (Object[])msg.obj;
-                handleSuccessMessage(((Integer) response[0]).intValue(), (Header[]) response[1], (CookieStore) response[2], (String) response[3]);
+                handleSuccessMessage(((Integer) response[0]).intValue(), (Header[]) response[1], (CookieStore) response[2], response[3]);
                 break;
             case FAILURE_MESSAGE:
                 response = (Object[])msg.obj;
@@ -152,7 +160,7 @@ public class ResponseHandler {
         }
     }
     
-    protected void handleSuccessMessage(int statusCode, Header[] headers, CookieStore cookieStore, String responseBody) {
+    protected void handleSuccessMessage(int statusCode, Header[] headers, CookieStore cookieStore, Object responseBody) {
 		if (mCallable != null) {
 			List<Cookie> cookies = null;
     		
@@ -174,9 +182,9 @@ public class ResponseHandler {
 
 	}
     
-    public void onSuccess(int statusCode, String content) {
+    public void onSuccess(int statusCode, Object content) {
     	if (mCallable != null){
-    		mCallable.onSuccess(content);
+    		mCallable.onSuccess(content.toString());
     	}
     }
 
@@ -208,7 +216,7 @@ public class ResponseHandler {
     }
 
     protected void sendMessage(Message msg) {
-        if(mMainHandler != null){
+        if(mMainHandler != null && mMainThread){//需要在主线程中执行
         	mMainHandler.sendMessage(msg);
         } else {
             handleMessage(msg);
@@ -226,4 +234,8 @@ public class ResponseHandler {
         }
         return msg;
     }
+    
+    public void setMainThread(boolean mainThread) {
+		mMainThread = mainThread;
+	}
 }

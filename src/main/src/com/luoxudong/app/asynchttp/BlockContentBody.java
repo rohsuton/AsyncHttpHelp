@@ -64,6 +64,7 @@ public class BlockContentBody extends AbstractContentBody {
 	public String getTransferEncoding() {
 		return "binary";
 	}
+	
 	@Override
 	public long getContentLength() {
 		if (mFileWrapper.getBlockSize() <= 0) {//未指定上传大小时默认上传剩余多有

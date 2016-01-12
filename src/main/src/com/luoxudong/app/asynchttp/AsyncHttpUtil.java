@@ -10,23 +10,24 @@
 package com.luoxudong.app.asynchttp;
 
 import java.io.File;
-import java.io.Serializable;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import android.text.TextUtils;
+import android.util.Log;
 
-import com.alibaba.fastjson.JSON;
-import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
+import com.luoxudong.app.asynchttp.callable.BinaryRequestCallable;
 import com.luoxudong.app.asynchttp.callable.DownloadRequestCallable;
 import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
+import com.luoxudong.app.asynchttp.callable.RequestCallable;
 import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
 import com.luoxudong.app.asynchttp.callable.UploadRequestCallable;
-import com.luoxudong.app.asynchttp.model.BaseResponse;
+import com.luoxudong.app.asynchttp.interceptor.JsonRequestInterceptor;
+import com.luoxudong.app.asynchttp.interceptor.JsonResponseInterceptor;
 import com.luoxudong.app.asynchttp.model.FileWrapper;
-import com.luoxudong.app.threadpool.constant.ThreadPoolConst;
+import com.luoxudong.app.asynchttp.threadpool.constant.ThreadPoolConst;
+import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
 
 /** 
  * <pre>
@@ -37,534 +38,568 @@ import com.luoxudong.app.threadpool.constant.ThreadPoolConst;
  * </pre>
  */
 public class AsyncHttpUtil {
-	private static BaseJsonHttpResponseAdapter mResponseAdapter = null;
+	private static final String TAG = "AsyncHttpUtil";
 	
-	/**
-	 * 设置json返回参数解析规则
-	 * @param responseAdapter
-	 */
-	public static void setResponseAdapter(BaseJsonHttpResponseAdapter responseAdapter){
-		mResponseAdapter = responseAdapter;
+	/** 返回结果是否在主线程中执行 */
+	private boolean mMainThread = true;
+	
+	/** 请求的URL地址 */
+	private String mUrl = null;
+
+	/** 链接超时时间 */
+	private int mConnectTimeout = 0;
+
+	/** 读取数据超时时间 */
+	private int mReadTimeout = 0;
+
+	/** ssl证书文件输入流 */
+	private InputStream mCertificatesInputSream = null;
+
+	/** url带的参数 */
+	private Map<String, String> mUrlParams = null;
+
+	/** http头部信息，cookie等参数可以通过这个方法设置 */
+	private Map<String, String> mHeaderParams = null;
+
+	/** Cookie信息 */
+	private Map<String, String> mCookies = null;
+	
+	/** Content-Type */
+	private String mContentType = null;
+
+	/** 请求body内容 */
+	private String mStrBody = null;
+
+	/** 二进制数据内容 */
+	private byte[] mBinaryBody = null;
+
+	/** 发送json请求时,返回的json对象类型 */
+	private Class mResponseClass = null;
+
+	/** 发送json请求时，请求参数对应的json对象 */
+	private Object mRequestObj = null;
+
+	/** form表单方式请求时表单内容 */
+	private Map<String, String> mFormDatas = null;
+
+	/** 断点下载，断点上传的起始位置 */
+	private long mFileStartPos = 0;
+
+	/** 下载文件存放本地的目录 */
+	private String mDownloadFileDir = null;
+
+	/** 下载文件的文件名 */
+	private String mDownloadfileName = null;
+
+	/** 批量文件上传时，文件参数配置，可以自定义断点上传数据块 */
+	private Map<String, FileWrapper> mFileWrappers = null;
+
+	/** 普通http请求的回调 */
+	private SimpleRequestCallable mSimpleCallable = null;
+
+	/** json请求的回调 */
+	private JsonRequestCallable mJsonCallable = null;
+	
+	/** 二进制请求的回调 */
+	private BinaryRequestCallable mBinaryCallable = null;
+
+	/** 下载文件回调 */
+	private DownloadRequestCallable mDownloadCallable = null;
+
+	/** 上传文件回调 */
+	private UploadRequestCallable mUploadCallable = null;
+
+	/** json请求拦截器 */
+	private JsonRequestInterceptor mJsonRequestInterceptor = null;
+
+	/** json回调来节气 */
+	private JsonResponseInterceptor mJsonResponseInterceptor = null;
+
+	private AsyncHttpUtil(Builder builder) {
+		mMainThread = builder.mMainThread;
+		mUrl = builder.mUrl;
+		mConnectTimeout = builder.mConnectTimeout;
+	 	mReadTimeout = builder.mReadTimeout;
+		mCertificatesInputSream = builder.mCertificatesInputSream;
+		mUrlParams = builder.mUrlParams;
+		mHeaderParams = builder.mHeaderParams;
+		mCookies = builder.mCookies;
+		mContentType = builder.mContentType;
+		mStrBody = builder.mStrBody;
+		mBinaryBody = builder.mBinaryBody;
+		mResponseClass = builder.mResponseClass;
+		mRequestObj = builder.mRequestObj;
+		mFormDatas = builder.mFormDatas;
+		mFileStartPos = builder.mFileStartPos;
+		mDownloadFileDir = builder.mDownloadFileDir;
+		mDownloadfileName = builder.mDownloadfileName;
+		mFileWrappers = builder.mFileWrappers;
+		mJsonRequestInterceptor = builder.mJsonRequestInterceptor;
+		mJsonResponseInterceptor = builder.mJsonResponseInterceptor;
+		
+		if (builder.mCallable instanceof JsonRequestCallable){
+			mJsonCallable = (JsonRequestCallable)builder.mCallable;
+		}else if (builder.mCallable instanceof DownloadRequestCallable) {
+			mDownloadCallable = (DownloadRequestCallable)builder.mCallable;
+		}else if (builder.mCallable instanceof UploadRequestCallable) {
+			mUploadCallable = (UploadRequestCallable)builder.mCallable;
+		}else if (builder.mCallable instanceof BinaryRequestCallable) {
+			mBinaryCallable = (BinaryRequestCallable)builder.mCallable;
+		}else if (builder.mCallable instanceof SimpleRequestCallable) {
+			mSimpleCallable = (SimpleRequestCallable)builder.mCallable;
+		}
 	}
 	
-	/**
-	 * 设置ssl请求
-	 * @param sslSocketFactory
-	 */
-	public static void setSSLSocketFactory(SSLSocketFactory sslSocketFactory){
-		AsyncHttpClient.setSSLSocketFactory(sslSocketFactory);
-	}
-	
-	/**
-	 * 发送简单的http get请求
-	 * @param url 请求url地址
-	 * @param callable 返回结果回调
-	 */
-	public static void simpleGetHttpRequest(String url, SimpleRequestCallable callable){
-		simpleGetHttpRequest(url, null, callable);
-	}
-	
-	/**
-	 * 发送简单的http get请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param callable 返回结果回调
-	 */
-	public static void simpleGetHttpRequest(String url, Map<String, String> urlParams, SimpleRequestCallable callable){
-		simpleGetHttpRequest(url, urlParams, null, 0, callable);
-	}
-	
-	/**
-	 * 发送简单的http get请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义链接超时时间
-	 * @param callable 返回结果回调
-	 */
-	public static void simpleGetHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, SimpleRequestCallable callable){
+	public <M> void get() {
+		if (TextUtils.isEmpty(mUrl)){
+			Log.e(TAG, "URL不能为空！");
+			return;
+		}
+
+		if (mResponseClass != null && mJsonResponseInterceptor == null){
+			Log.e(TAG, "setResponseClass和setJsonResponseInterceptor必须同时使用");
+			return;
+		}
+
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		RequestParams params = new RequestParams();
-		ResponseHandler handler = new ResponseHandler(callable);
+		ResponseHandler handler = new ResponseHandler(mSimpleCallable);//默认为普通get请求，返回字符串
+
+		if (mJsonCallable != null){//以json对象的方式返回
+			handler = new JsonResponseHandler<M>(mResponseClass, mJsonCallable);
+			((JsonResponseHandler<M>)handler).setJsonResponseInterceptor(mJsonResponseInterceptor);
+		}
+
+		handler.setMainThread(mMainThread);
 		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
+		if (mUrlParams != null){
+			params.put(mUrlParams);
+		}
+
+		if (mHeaderParams != null) {
+			params.putHeaderParam(mHeaderParams);
+		}
+
+		if (mCookies != null){
+			params.putCookies(mCookies);
 		}
 		
-		if (urlParams != null){
-			params.put(urlParams);
+		if (mConnectTimeout > 0){
+			params.setConnectTimeout(mConnectTimeout);
 		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
+
+		if (mReadTimeout > 0){
+			params.setReadTimeout(mReadTimeout);
 		}
-		
+
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.get(url, params, handler);
+		httpRequest.get(mUrl, params, handler);
 	}
-	
-	/**
-	 * 发送http get请求，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void jsonGetHttpRequest(String url, Class<M> responseClass, JsonRequestCallable<M> callable){
-		jsonGetHttpRequest(url, null, null, 0, responseClass, callable);
-	}
-	
-	/**
-	 * 发送http get请求，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义链接超时时间
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void jsonGetHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Class<M> responseClass, JsonRequestCallable<M> callable){
+
+	public <M> void post() {
+		if (TextUtils.isEmpty(mUrl)){
+			Log.e(TAG, "URL不能为空！");
+			return;
+		}
+
+		if (mRequestObj != null && mJsonRequestInterceptor == null){
+			Log.e(TAG, "setRequestObj和setJsonRequestInterceptor必须同时使用");
+			return;
+		}
+
+		if (mResponseClass != null && mJsonResponseInterceptor == null){
+			Log.e(TAG, "setResponseClass和setJsonResponseInterceptor必须同时使用");
+			return;
+		}
+
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
+
 		RequestParams params = new RequestParams();
-		JsonResponseHandler<M> handler = new JsonResponseHandler<M>(responseClass, callable);
-		
-		if (mResponseAdapter != null){
-			handler.setResponseAdapter(mResponseAdapter);
+		ResponseHandler handler = new ResponseHandler(mSimpleCallable);//默认为普通get请求，返回字符串
+
+		//请求内容为json对象
+		if (mRequestObj != null){
+			params = new JsonRequestParams();
+			((JsonRequestParams)params).setRequestJsonObj(mRequestObj);
+			((JsonRequestParams)params).setJsonRequestInterceptor(mJsonRequestInterceptor);
+		}else if (mFormDatas != null){
+			params = new FormRequestParams();
+			((FormRequestParams)params).putFormParam(mFormDatas);
+		}else if (mBinaryBody != null){
+			params = new BinaryRequestParams();
+			((BinaryRequestParams)params).setBuffer(mBinaryBody);
+		}else{
+			params.setRequestBody(mStrBody);
 		}
 		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
+		//返回结果为json对象
+		if (mJsonCallable != null) {
+			handler = new JsonResponseHandler<M>(mResponseClass, mJsonCallable);
+			((JsonResponseHandler<M>)handler).setJsonResponseInterceptor(mJsonResponseInterceptor);
+			
+			if (mContentType != null) {
+				mContentType = AsyncHttpConst.HEADER_CONTENT_TYPE_JSON;
+			}
+		} else if (mBinaryCallable != null) {
+			handler = new BinaryResponseHandler(mBinaryCallable);
 		}
 		
-		if (urlParams != null){
-			params.put(urlParams);
+		handler.setMainThread(mMainThread);
+		
+		if (mUrlParams != null){
+			params.put(mUrlParams);
+		}
+
+		if (mHeaderParams != null) {
+			params.putHeaderParam(mHeaderParams);
 		}
 		
-		if (timeout > 0){
-			params.setTimeout(timeout);
+		if (mCookies != null){
+			params.putCookies(mCookies);
+		}
+
+		if (mConnectTimeout > 0){
+			params.setConnectTimeout(mConnectTimeout);
+		}
+
+		if (mReadTimeout > 0){
+			params.setReadTimeout(mReadTimeout);
 		}
 		
+		if (!TextUtils.isEmpty(mContentType)){
+			params.setContentType(mContentType);
+		}
+
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.get(url, params, handler);
+		httpRequest.post(mUrl, params, handler);
 	}
-	
-	/**
-	 * 发送简单http post请求
-	 * @param url 请求url地址
-	 * @param callable 返回结果回调
-	 */
-	public static void simplePostHttpRequest(String url, SimpleRequestCallable callable){
-		simplePostHttpRequest(url, null, null, 0, null, null, callable);
-	}
-	
-	/**
-	 * 发送简单http post请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义链接超时时间
-	 * @param contentType 请求内容类型
-	 * @param requestBody 消息体内容
-	 * @param callable 返回结果回调
-	 */
-	public static void simplePostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, String requestBody, SimpleRequestCallable callable){
-		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
-		RequestParams params = new RequestParams();
-		ResponseHandler handler = new ResponseHandler(callable);
-		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
+
+	public void download() {
+		if (TextUtils.isEmpty(mUrl)){
+			Log.e(TAG, "URL不能为空！");
+			return;
 		}
-		
-		if (urlParams != null){
-			params.put(urlParams);
-		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
-		}
-		
-		if (!TextUtils.isEmpty(contentType)){
-			params.setContentType(contentType);
-		}
-		
-		if (requestBody != null){
-			params.setRequestBody(requestBody);
-		}
-		
-		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.post(url, params, handler);
-	}
-	
-	/**
-	 * 发送post请求，请求内容为json对象，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param requestInfo 请求内容的json对象
-	 * @param responseClass 返回结果对象类型
-	 * @param callable 返回结果回调
-	 */
-	public static <T extends Serializable, M extends BaseResponse<M>> void jsonPostHttpRequest(String url, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
-		jsonPostHttpRequest(url, null, requestInfo, responseClass, callable);
-	}
-	
-	/**
-	 * 发送post请求，请求内容为json对象，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param requestInfo 请求内容的json对象
-	 * @param responseClass 返回结果对象类型
-	 * @param callable 返回结果回调
-	 */
-	public static <T extends Serializable, M extends BaseResponse<M>> void jsonPostHttpRequest(String url, Map<String, String> headerParams, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
-		jsonPostHttpRequest(url, null, headerParams, 0, AsyncHttpConst.HEADER_CONTENT_TYPE_JSON, requestInfo, responseClass, callable);
-	}
-	
-	/**
-	 * 发送post请求，请求内容为json对象，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param contentType 请求内容类型
-	 * @param requestInfo 请求内容的json对象
-	 * @param responseClass 返回结果对象类型
-	 * @param callable 返回结果回调
-	 */
-	public static <T extends Serializable, M extends BaseResponse<M>> void jsonPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
-		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
-		JsonRequestParams<T> params = new JsonRequestParams<T>();
-		JsonResponseHandler<M> handler = new JsonResponseHandler<M>(responseClass, callable);
-		
-		if (mResponseAdapter != null){
-			handler.setResponseAdapter(mResponseAdapter);
-		}
-		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
-		}
-		
-		if (urlParams != null){
-			params.put(urlParams);
-		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
-		}
-		
-		if (!TextUtils.isEmpty(contentType)){
-			params.setContentType(contentType);
-		}
-		
-		params.setRequestJsonObj(requestInfo);
-		
-		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.post(url, params, handler);
-	}
-	
-	/**
-	 * 发送form键值参数请求
-	 * @param url 请求url地址
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formPostHttpRequest(String url, Map<String, String> formDatas, SimpleRequestCallable callable){
-		formPostHttpRequest(url, null, null, 0, null, formDatas, callable);
-	}
-	
-	/**
-	 * 发送form键值参数请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param contentType 请求内容类型
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, Map<String, String> formDatas, SimpleRequestCallable callable){
-		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
-		FormRequestParams params = new FormRequestParams();
-		ResponseHandler handler = new ResponseHandler(callable);
-		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
-		}
-		
-		if (urlParams != null){
-			params.put(urlParams);
-		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
-		}
-		
-		if (!TextUtils.isEmpty(contentType)){
-			params.setContentType(contentType);
-		}
-		
-		if (formDatas != null){
-			params.putFormParam(formDatas);
-		}
-		
-		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.post(url, params, handler);
-	}
-	
-	/**
-	 * 发送form键值参数请求,返回结果为json对象
-	 * @param url 请求url地址
-	 * @param formDatas form键值参数
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> formDatas, Class<M> responseClass, JsonRequestCallable<M> callable){
-		formPostHttpRequest(url, null, formDatas, responseClass, callable);
-	}
-	
-	/**
-	 * 发送form键值参数请求,请求参数以及返回结果都为对象
-	 * @param url 请求url地址
-	 * @param key 请求参数的key
-	 * @param requestInfo 请求参数对象
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <T extends Serializable, M extends BaseResponse<M>> void formPostHttpRequest(String url, String key, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
-		formPostHttpRequest(url, null, key, requestInfo, responseClass, callable);
-	}
-	
-	public static <T extends Serializable, M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> headerParams, String key, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable){
-		String requestData = JSON.toJSONString(requestInfo);
-    	
-    	Map<String, String> formDatas = new ConcurrentHashMap<String, String>();
-    	formDatas.put(key, requestData);
-    	formPostHttpRequest(url, headerParams, formDatas, responseClass, callable);
-	}
-	
-	/**
-	 * 发送form键值参数请求,返回结果为json对象
-	 * @param url 请求url地址
-	 * @param headerParams url中带的参数，会进行url编码
-	 * @param formDatas form键值参数
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> headerParams, Map<String, String> formDatas, Class<M> responseClass, JsonRequestCallable<M> callable){
-		formPostHttpRequest(url, null, headerParams, 0, null, formDatas, responseClass, callable);
-	}
-	
-	/**
-	 * 发送form键值参数请求,返回结果为json对象
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param contentType 请求内容类型
-	 * @param formDatas form键值参数
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, Map<String, String> formDatas, Class<M> responseClass, JsonRequestCallable<M> callable){
-		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
-		FormRequestParams params = new FormRequestParams();
-		JsonResponseHandler<M> handler = new JsonResponseHandler<M>(responseClass, callable);
-		
-		if (mResponseAdapter != null){
-			handler.setResponseAdapter(mResponseAdapter);
-		}
-		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
-		}
-		
-		if (urlParams != null){
-			params.put(urlParams);
-		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
-		}
-		
-		if (!TextUtils.isEmpty(contentType)){
-			params.setContentType(contentType);
-		}
-		
-		if (formDatas != null){
-			params.putFormParam(formDatas);
-		}
-		
-		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.post(url, params, handler);
-	}
-	
-	/**
-	 * 发送模拟form-data表单请求
-	 * @param url 请求url地址
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formDataPostHttpRequest(String url, Map<String, String> formDatas, SimpleRequestCallable callable){
-		formDataPostHttpRequest(url, null, null, 0, formDatas, callable);
-	}
-	
-	/**
-	 * 发送模拟form-data表单请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formDataPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Map<String, String> formDatas, SimpleRequestCallable callable){
-		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
-		FormDataRequestParams params = new FormDataRequestParams();
-		ResponseHandler handler = new ResponseHandler(callable);
-		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
-		}
-		
-		if (urlParams != null){
-			params.put(urlParams);
-		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
-		}
-		
-		if (formDatas != null){
-			params.putFormParam(formDatas);
-		}
-		
-		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
-		httpRequest.post(url, params, handler);
-	}
-	
-	/**
-	 * 普通下载
-	 * @param url 下载url
-	 * @param fileDir  本地保存目录
-	 * @param fileName 本地保存文件名
-	 * @param callable 下载回调方法
-	 */
-	public static void download(String url, String fileDir, String fileName, DownloadRequestCallable callable){
-		download(url, fileDir, fileName, 0, callable);
-	}
-	
-	/**
-	 * 断点下载
-	 * @param url 下载url
-	 * @param fileDir 本地保存目录
-	 * @param fileName 本地保存文件名
-	 * @param startPos 断点下载开始位置
-	 * @param callable 下载回调方法
-	 */
-	public static void download(String url, String fileDir, String fileName, long startPos, DownloadRequestCallable callable){
-		download(url, null, null, 0, fileDir, fileName, startPos, 0, callable);
-	}
-	
-	/**
-	 * 下载文件，支持断点续传
-	 * @param url 下载url
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param fileDir 本地保存目录
-	 * @param fileName 本地保存文件名
-	 * @param startPos 下载开始位置
-	 * @param endPos 下载结束位置
-	 * @param callable 下载回调方法
-	 */
-	public static void download(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String fileDir, String fileName, long startPos, long endPos, DownloadRequestCallable callable){
+
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		DownloadRequestParams params = new DownloadRequestParams();
-		DownloadResponseHandler handler = new DownloadResponseHandler(callable);
+		DownloadResponseHandler handler = new DownloadResponseHandler(mDownloadCallable);
+
+		handler.setMainThread(mMainThread);
 		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
+		if (mUrlParams != null){
+			params.put(mUrlParams);
 		}
-		
-		if (urlParams != null){
-			params.put(urlParams);
+
+		if (mHeaderParams != null) {
+			params.putHeaderParam(mHeaderParams);
 		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
+
+		if (mConnectTimeout > 0){
+			params.setConnectTimeout(mConnectTimeout);
 		}
-		
-		params.setStartPos(startPos);
-		params.setEndPos(endPos);
-		params.setFileDir(fileDir);
-		params.setFileName(fileName);
-		
+
+		if (mReadTimeout > 0){
+			params.setReadTimeout(mReadTimeout);
+		}
+
+		params.setStartPos(mFileStartPos);
+		params.setFileDir(mDownloadFileDir);
+		params.setFileName(mDownloadfileName);
+
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);
-		httpRequest.get(url, params, handler);
+		httpRequest.get(mUrl, params, handler);
 	}
-	
-	/**
-	 * 单文件普通上传
-	 * @param url 上传地址
-	 * @param formDatas 表单参数
-	 * @param name 文件属性名
-	 * @param file 要上产的文件
-	 * @param callable 上传回调
-	 */
-	public static void upload(String url, Map<String, String> formDatas, String name, File file, UploadRequestCallable callable){
-		FileWrapper fileWrapper = new FileWrapper();
-		fileWrapper.setFile(file);
-		upload(url, formDatas, name, fileWrapper, callable);;
-	}
-	
-	/**
-	 * 单文件断点上传
-	 * @param url 上传地址
-	 * @param formDatas 表单参数
-	 * @param name 文件属性名
-	 * @param fileWrapper 要上传的文件信息
-	 * @param callable 上传回调
-	 */
-	public static void upload(String url, Map<String, String> formDatas, String name, FileWrapper fileWrapper, UploadRequestCallable callable){
-		Map<String, FileWrapper> fileWrappers = new ConcurrentHashMap<String, FileWrapper>();
-		fileWrappers.put(name, fileWrapper);
-		upload(url, null, null, 0, formDatas, fileWrappers, callable);
-	}
-	
-	/**
-	 * 文件上传，支持多文件断点续传
-	 * @param url 上传地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param formDatas 表单参数
-	 * @param fileWrappers 上传的文件列表
-	 * @param callable 上传回调
-	 */
-	public static void upload(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Map<String, String> formDatas, Map<String, FileWrapper> fileWrappers, UploadRequestCallable callable){
+
+	public void upload() {
+		if (TextUtils.isEmpty(mUrl)){
+			Log.e(TAG, "URL不能为空！");
+			return;
+		}
+
+		if (mFileWrappers == null || mFileWrappers.size() == 0){
+			Log.e(TAG, "没有选中上传的文件！");
+			return;
+		}
+
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		UploadRequestParams params = new UploadRequestParams();
-		UploadResponseHandler handler = new UploadResponseHandler(callable);
+		UploadResponseHandler handler = new UploadResponseHandler(mUploadCallable);
+
+		handler.setMainThread(mMainThread);
 		
-		if (headerParams != null) {
-			params.putHeaderParam(headerParams);
+		if (mUrlParams != null){
+			params.put(mUrlParams);
 		}
-		
-		if (urlParams != null){
-			params.put(urlParams);
+
+		if (mHeaderParams != null) {
+			params.putHeaderParam(mHeaderParams);
 		}
-		
-		if (timeout > 0){
-			params.setTimeout(timeout);
+
+		if (mConnectTimeout > 0){
+			params.setConnectTimeout(mConnectTimeout);
 		}
-		
-		if (formDatas != null){
-			params.putFormParam(formDatas);
+
+		if (mReadTimeout > 0){
+			params.setReadTimeout(mReadTimeout);
 		}
-		
-		if (fileWrappers != null){
-			params.putFileParam(fileWrappers);
+
+		if (mFormDatas != null){
+			params.putFormParam(mFormDatas);
 		}
-		
+
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);
-		httpRequest.post(url, params, handler);
+		httpRequest.post(mUrl, params, handler);
+	}
+
+	public static void enableLog() {
+		AsyncHttpLog.enableLog();
+	}
+	
+	public static void disableLog() {
+		AsyncHttpLog.disableLog();
+	}
+	
+	public static class Builder {
+		/** 返回结果是否在主线程中执行 */
+		private boolean mMainThread = true;
+		
+		/** 请求的URL地址 */
+		private String mUrl = null;
+
+		/** 链接超时时间 */
+		private int mConnectTimeout = 0;
+
+		/** 读取数据超时时间 */
+		private int mReadTimeout = 0;
+
+		/** ssl证书文件输入流 */
+		private InputStream mCertificatesInputSream = null;
+
+		/** url带的参数 */
+		private Map<String, String> mUrlParams = null;
+
+		/** http头部信息，cookie等参数可以通过这个方法设置 */
+		private Map<String, String> mHeaderParams = null;
+
+		/** Cookie信息 */
+		private Map<String, String> mCookies = null;
+		
+		/** User-Agent */
+		private String mUserAgent = null;
+		
+		/** Content-Type */
+		private String mContentType = null;
+
+		/** 请求body内容 */
+		private String mStrBody = null;
+
+		/** 二进制数据内容 */
+		private byte[] mBinaryBody = null;
+
+		/** 发送json请求时,返回的json对象类型 */
+		private Class mResponseClass = null;
+
+		/** 发送json请求时，请求参数对应的json对象 */
+		private Object mRequestObj = null;
+
+		/** form表单方式请求时表单内容 */
+		private Map<String, String> mFormDatas = null;
+
+		/** 断点下载，断点上传的起始位置 */
+		private long mFileStartPos = 0;
+
+		/** 下载文件存放本地的目录 */
+		private String mDownloadFileDir = null;
+
+		/** 下载文件的文件名 */
+		private String mDownloadfileName = null;
+
+		/** 批量文件上传时，文件参数配置，可以自定义断点上传数据块 */
+		private Map<String, FileWrapper> mFileWrappers = null;
+
+		/** 普通http请求的回调 */
+		private RequestCallable mCallable = null;
+
+		/** json请求拦截器 */
+		private JsonRequestInterceptor mJsonRequestInterceptor = null;
+
+		/** json回调来节气 */
+		private JsonResponseInterceptor mJsonResponseInterceptor = null;
+
+		public Builder() {
+		}
+
+		public Builder mainThread(boolean mainThread) {
+			mMainThread = mainThread;
+			return this;
+		}
+		
+		public Builder url(String url) {
+			mUrl = url;
+			return this;
+		}
+
+		public Builder setConnectTimeout(int connectTimeout) {
+			mConnectTimeout = connectTimeout;
+			return this;
+		}
+
+		public Builder setReadTimeout(int readTimeout) {
+			mReadTimeout = readTimeout;
+			return this;
+		}
+
+		public Builder setCertificatesInputSream(InputStream certificatesInputSream) {
+			mCertificatesInputSream = certificatesInputSream;
+			return this;
+		}
+
+		public Builder setUrlParams(Map<String, String> urlParams) {
+			mUrlParams = urlParams;
+			return this;
+		}
+
+		public Builder addUrlParam(String key, String value) {
+			if (mUrlParams == null){
+				mUrlParams = new HashMap<String, String>();
+			}
+
+			mUrlParams.put(key, value);
+			return this;
+		}
+
+		public Builder setHeaderParams(Map<String, String> headerParams) {
+			mHeaderParams = headerParams;
+			return this;
+		}
+
+		public Builder addHeaderParam(String key, String value) {
+			if (mHeaderParams == null){
+				mHeaderParams = new HashMap<String, String>();
+			}
+
+			mHeaderParams.put(key, value);
+			return this;
+		}
+		
+		public Builder setCookies(Map<String, String> cookies) {
+			mCookies = cookies;
+			return this;
+		}
+		
+		public Builder addCookie(String key, String value) {
+			if (mCookies == null){
+				mCookies = new HashMap<String, String>();
+			}
+			
+			mCookies.put(key, value);
+			return this;
+		}
+
+		public Builder setUserAgent(String userAgent) {
+			addHeaderParam(AsyncHttpConst.HEADER_USER_AGENT, userAgent);
+			return this;
+		}
+		
+		public Builder setContentType(String contentType) {
+			mContentType = contentType;
+			return this;
+		}
+
+		public Builder setStrBody(String strBody) {
+			mStrBody = strBody;
+			return this;
+		}
+
+		public Builder setBinaryBody(byte[] binaryBody) {
+			mBinaryBody = binaryBody;
+			return this;
+		}
+
+		public <M> Builder setResponseClass(Class<M> responseClass) {
+			mResponseClass = responseClass;
+			return this;
+		}
+
+		public Builder setRequestObj(Object requestObj) {
+			mRequestObj = requestObj;
+			return this;
+		}
+
+		public Builder setFormDatas(Map<String, String> formDatas) {
+			mFormDatas = formDatas;
+			return this;
+		}
+
+		public Builder addFormData(String key, String value) {
+			if (mFormDatas == null){
+				mFormDatas = new HashMap<String, String>();
+			}
+
+			mFormDatas.put(key, value);
+
+			return this;
+		}
+
+		public Builder setFileStartPos(long fileStartPos) {
+			mFileStartPos = fileStartPos;
+			return this;
+		}
+
+		public Builder setDownloadFileDir(String downloadFileDir) {
+			mDownloadFileDir = downloadFileDir;
+			return this;
+		}
+
+		public Builder setDownloadfileName(String downloadfileName) {
+			mDownloadfileName = downloadfileName;
+			return this;
+		}
+
+		public Builder setFileWrappers(Map<String, FileWrapper> fileWrappers) {
+			mFileWrappers = fileWrappers;
+			return this;
+		}
+
+		public Builder addUploadFile(String key, File uploadFile) {
+			if (mFileWrappers == null){
+				mFileWrappers = new HashMap<String, FileWrapper>();
+			}
+
+			FileWrapper fileWrapper = new FileWrapper();
+			fileWrapper.setFile(uploadFile);
+			mFileWrappers.put(key, fileWrapper);
+			return this;
+		}
+
+		public Builder addFileWrapper(String key, FileWrapper fileWrapper) {
+			if (mFileWrappers == null){
+				mFileWrappers = new HashMap<String, FileWrapper>();
+			}
+
+			mFileWrappers.put(key, fileWrapper);
+
+			return this;
+		}
+
+		public Builder setCallable(RequestCallable callable) {
+			mCallable = callable;
+			return this;
+		}
+
+		public Builder setJsonRequestInterceptor(JsonRequestInterceptor jsonRequestInterceptor) {
+			mJsonRequestInterceptor = jsonRequestInterceptor;
+			return this;
+		}
+
+		public Builder setJsonResponseInterceptor(JsonResponseInterceptor jsonResponseInterceptor) {
+			mJsonResponseInterceptor = jsonResponseInterceptor;
+			return this;
+		}
+
+		public AsyncHttpUtil build() {
+			return new AsyncHttpUtil(this);
+		}
+
 	}
 }

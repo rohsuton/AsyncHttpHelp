@@ -9,7 +9,6 @@
  */
 package com.luoxudong.app.asynchttp.callable;
 
-import com.luoxudong.app.asynchttp.model.BaseResponse;
 
 /** 
  * <pre>
@@ -19,7 +18,7 @@ import com.luoxudong.app.asynchttp.model.BaseResponse;
  * Date: 2015年7月13日 下午3:30:59
  * </pre>
  */
-public abstract class JsonRequestCallable<M extends BaseResponse<M>>  extends SimpleRequestCallable {
+public abstract class JsonRequestCallable<M>  extends SimpleRequestCallable {
 	/**
 	 * 返回普通json对象
 	 * @param responseInfo

@@ -21,8 +21,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 import com.luoxudong.app.asynchttp.interfaces.IHttpRequestCancelListener;
-import com.luoxudong.app.threadpool.constant.ThreadPoolConst;
-import com.luoxudong.app.threadpool.manager.ThreadTaskObject;
+import com.luoxudong.app.asynchttp.threadpool.constant.ThreadPoolConst;
+import com.luoxudong.app.asynchttp.threadpool.manager.AsyncHttpTaskObject;
 
 /** 
  * ClassName: AsyncHttpRequest
@@ -182,7 +182,7 @@ public class AsyncHttpRequest {
      * @param httpRequestCancelListener
      */
 	public void cancel(final IHttpRequestCancelListener httpRequestCancelListener) {
-		new ThreadTaskObject(ThreadPoolConst.THREAD_TYPE_WORK, null) {
+		new AsyncHttpTaskObject(ThreadPoolConst.THREAD_TYPE_WORK, null) {
 			public void run() {
 				if (httpRequestCancelListener != null) {
 					mAsyncHttpTask.setHttpRequestCancelListener(httpRequestCancelListener);

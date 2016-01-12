@@ -16,7 +16,10 @@ import org.apache.http.entity.StringEntity;
 
 import android.text.TextUtils;
 
-import com.alibaba.fastjson.JSON;
+import com.luoxudong.app.asynchttp.exception.AsyncHttpException;
+import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
+import com.luoxudong.app.asynchttp.interceptor.JsonRequestInterceptor;
+import com.luoxudong.app.asynchttp.model.BaseRequest;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
 
 /** 
@@ -25,16 +28,27 @@ import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
  * Create by: 罗旭东
  * Date: 2015年7月14日 下午12:04:05
  */
-public class JsonRequestParams<T> extends RequestParams {
+public class JsonRequestParams extends RequestParams {
 	private static final String TAG = JsonRequestParams.class.getSimpleName();
 	
 	/** 请求参数对象 */
-	protected T mRequestJsonObj = null;
+	protected Object mRequestJsonObj = null;
+
+	/** json请求拦截器 */
+	private JsonRequestInterceptor mJsonRequestInterceptor = null;
 	
 	@Override
 	public HttpEntity getEntity() {
 		StringEntity entity = null;
-    	String requestData = JSON.toJSONString(getRequestJsonObj());
+    	String requestData = null;
+		if (mJsonRequestInterceptor != null){
+			try {
+				requestData = mJsonRequestInterceptor.convertJsonToObj(getRequestJsonObj());
+			} catch (Exception e) {
+				throw new AsyncHttpException(AsyncHttpExceptionCode.jsonParseException.getErrorCode(), e);
+			}
+		}
+		
     	AsyncHttpLog.i(TAG, requestData);
     	try {
     		entity = new StringEntity(requestData, AsyncHttpConst.HTTP_ENCODING);
@@ -50,11 +64,15 @@ public class JsonRequestParams<T> extends RequestParams {
     	return entity;
 	}
 
-	public T getRequestJsonObj() {
+	public Object getRequestJsonObj() {
 		return mRequestJsonObj;
 	}
 
-	public void setRequestJsonObj(T requestJsonObj) {
+	public void setRequestJsonObj(Object requestJsonObj) {
 		this.mRequestJsonObj = requestJsonObj;
+	}
+
+	public void setJsonRequestInterceptor(JsonRequestInterceptor jsonRequestInterceptor) {
+		mJsonRequestInterceptor = jsonRequestInterceptor;
 	}
 }

@@ -11,12 +11,10 @@ package com.luoxudong.app.asynchttp;
 
 import org.apache.http.HttpStatus;
 
-import com.alibaba.fastjson.JSON;
-import com.luoxudong.app.asynchttp.adapter.BaseJsonHttpResponseAdapter;
 import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpException;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
-import com.luoxudong.app.asynchttp.model.BaseResponse;
+import com.luoxudong.app.asynchttp.interceptor.JsonResponseInterceptor;
 
 /** 
  * ClassName: JsonResponseHandler
@@ -24,33 +22,30 @@ import com.luoxudong.app.asynchttp.model.BaseResponse;
  * Create by: 罗旭东
  * Date: 2015年7月15日 下午2:46:44
  */
-public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHandler {
+public class JsonResponseHandler<M> extends ResponseHandler {
 	private Class<M> mResponseClass = null;
-	
-	private JsonRequestCallable<M> mJsonCallable = null;
-	
-	/** 返回内容过滤 */
-	private BaseJsonHttpResponseAdapter mResponseAdapter = null;
+
+	/** json回调拦截器 */
+	private JsonResponseInterceptor mJsonResponseInterceptor = null;
 
 	public JsonResponseHandler(Class<M> responseClass, JsonRequestCallable<M> callable) {
 		super(callable);
-		mJsonCallable = callable;
 		mResponseClass = responseClass;
 	}
 
 	@Override
-	public void onSuccess(int statusCode, String content) {
+	public void onSuccess(int statusCode, Object content) {
 		if (statusCode != HttpStatus.SC_NO_CONTENT){
             try {
-                M jsonResponse = parseResponse(content);
+                M jsonResponse = parseResponse(content.toString());
                 
-				if (mResponseAdapter != null && !mResponseAdapter.checkResponseData(jsonResponse)) {// 返回的数据成功
-					int errorCode = mResponseAdapter.getErrorCode();
-					String errorMsg = mResponseAdapter.getErrorMsg();
+				if (mJsonResponseInterceptor != null && !mJsonResponseInterceptor.checkResponse(jsonResponse)) {// 返回的数据失败
+					int errorCode = mJsonResponseInterceptor.getErrorCode();
+					String errorMsg = mJsonResponseInterceptor.getErrorMsg();
 					onFailure(errorCode, new AsyncHttpException(errorMsg));
 				} else {
-					if (mJsonCallable != null) {
-						mJsonCallable.onSuccess(jsonResponse);
+					if (mCallable != null) {
+						((JsonRequestCallable<M>)mCallable).onSuccess(jsonResponse);
 					}
 				}
     	    } catch(AsyncHttpException e) {
@@ -72,24 +67,22 @@ public class JsonResponseHandler<M extends BaseResponse<M>> extends ResponseHand
         	return null;
         }
         responseBody = responseBody.trim();
-		if(responseBody.startsWith("{") || responseBody.startsWith("[")) {//合法的json字符串
+
+		if (mJsonResponseInterceptor != null) {// 返回的数据成功
 			try {
-				result = JSON.parseObject(responseBody, mResponseClass);
+				result = (M)mJsonResponseInterceptor.convertJsonToObj(responseBody, mResponseClass);
 			} catch (Exception e) {
 				throw new AsyncHttpException(AsyncHttpExceptionCode.jsonParseException.getErrorCode(), e);
 			}
-			
+		}else{
+			throw new AsyncHttpException(AsyncHttpExceptionCode.jsonParseException.getErrorCode(), "没有设置json解析器");
 		}
-		
+
 		return result;
     }
 
-	public BaseJsonHttpResponseAdapter getResponseAdapter() {
-		return mResponseAdapter;
-	}
-
-	public void setResponseAdapter(BaseJsonHttpResponseAdapter responseAdapter) {
-		mResponseAdapter = responseAdapter;
+	public void setJsonResponseInterceptor(JsonResponseInterceptor jsonResponseInterceptor) {
+		mJsonResponseInterceptor = jsonResponseInterceptor;
 	}
     
 }

@@ -22,6 +22,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -37,7 +38,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
 
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
-import com.luoxudong.app.threadpool.manager.ThreadTaskObject;
+import com.luoxudong.app.asynchttp.threadpool.manager.AsyncHttpTaskObject;
 
 /** 
  * ClassName: AsyncHttpClient
@@ -63,7 +64,7 @@ public class AsyncHttpClient {
 			BasicHttpParams httpParams = new BasicHttpParams();
 			httpParams.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false);
 			
-			//httpParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
+			httpParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 			HttpConnectionParams.setSoTimeout(httpParams, AsyncHttpConst.DEFAULT_SO_TIMEOUT);
 			HttpConnectionParams.setConnectionTimeout(httpParams, AsyncHttpConst.DEFAULT_CONNECT_TIMEOUT);
 			HttpConnectionParams.setTcpNoDelay(httpParams, true);
@@ -136,7 +137,7 @@ public class AsyncHttpClient {
 		if (httpClient != null)
 		{
 			AsyncHttpLog.i(TAG, "正在销毁HttpClient对象");
-			new ThreadTaskObject(){
+			new AsyncHttpTaskObject(){
 				public void run() {
 					synchronized (httpClient) {
 						httpClient.getConnectionManager().shutdown();
@@ -169,14 +170,6 @@ public class AsyncHttpClient {
 		}
 		
 		httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme("https", new EasySSLSocketFactory(), 443));
-	}
-	
-	public static void setUserAgent(String userAgent){
-		AsyncHttpConst.sUserAgent = userAgent;
-		
-		if (httpClient != null){
-			HttpProtocolParams.setUserAgent(httpClient.getParams(), userAgent);
-		}
 	}
 	
 	private static class InflatingEntity extends HttpEntityWrapper {
