@@ -43,8 +43,7 @@ public class AsyncHttpRequest {
     /** 线程池类型 */
     private int mThreadPoolType = ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP;
     
-    public AsyncHttpRequest()
-    {
+    public AsyncHttpRequest(){
     	mHttpContext = new BasicHttpContext();
     	mHttpClient = AsyncHttpClient.getAsyncHttpClient();
     }

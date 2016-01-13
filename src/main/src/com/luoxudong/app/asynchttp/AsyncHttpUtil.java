@@ -150,15 +150,15 @@ public class AsyncHttpUtil {
 		}
 	}
 	
-	public <M> void get() {
+	public <M> AsyncHttpRequest get() {
 		if (TextUtils.isEmpty(mUrl)){
 			Log.e(TAG, "URL不能为空！");
-			return;
+			return null;
 		}
 
 		if (mResponseClass != null && mJsonResponseInterceptor == null){
 			Log.e(TAG, "setResponseClass和setJsonResponseInterceptor必须同时使用");
-			return;
+			return null;
 		}
 
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
@@ -194,22 +194,24 @@ public class AsyncHttpUtil {
 
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
 		httpRequest.get(mUrl, params, handler);
+		
+		return httpRequest;
 	}
 
-	public <M> void post() {
+	public <M> AsyncHttpRequest post() {
 		if (TextUtils.isEmpty(mUrl)){
 			Log.e(TAG, "URL不能为空！");
-			return;
+			return null;
 		}
 
 		if (mRequestObj != null && mJsonRequestInterceptor == null){
 			Log.e(TAG, "setRequestObj和setJsonRequestInterceptor必须同时使用");
-			return;
+			return null;
 		}
 
 		if (mResponseClass != null && mJsonResponseInterceptor == null){
 			Log.e(TAG, "setResponseClass和setJsonResponseInterceptor必须同时使用");
-			return;
+			return null;
 		}
 
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
@@ -272,12 +274,14 @@ public class AsyncHttpUtil {
 
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_SIMPLE_HTTP);
 		httpRequest.post(mUrl, params, handler);
+		
+		return httpRequest;
 	}
 
-	public void download() {
+	public AsyncHttpRequest download() {
 		if (TextUtils.isEmpty(mUrl)){
 			Log.e(TAG, "URL不能为空！");
-			return;
+			return null;
 		}
 
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
@@ -294,6 +298,10 @@ public class AsyncHttpUtil {
 			params.putHeaderParam(mHeaderParams);
 		}
 
+		if (mCookies != null){
+			params.putCookies(mCookies);
+		}
+		
 		if (mConnectTimeout > 0){
 			params.setConnectTimeout(mConnectTimeout);
 		}
@@ -308,17 +316,19 @@ public class AsyncHttpUtil {
 
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);
 		httpRequest.get(mUrl, params, handler);
+		
+		return httpRequest;
 	}
 
-	public void upload() {
+	public AsyncHttpRequest upload() {
 		if (TextUtils.isEmpty(mUrl)){
 			Log.e(TAG, "URL不能为空！");
-			return;
+			return null;
 		}
 
 		if (mFileWrappers == null || mFileWrappers.size() == 0){
 			Log.e(TAG, "没有选中上传的文件！");
-			return;
+			return null;
 		}
 
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
@@ -335,6 +345,10 @@ public class AsyncHttpUtil {
 			params.putHeaderParam(mHeaderParams);
 		}
 
+		if (mCookies != null){
+			params.putCookies(mCookies);
+		}
+		
 		if (mConnectTimeout > 0){
 			params.setConnectTimeout(mConnectTimeout);
 		}
@@ -346,9 +360,15 @@ public class AsyncHttpUtil {
 		if (mFormDatas != null){
 			params.putFormParam(mFormDatas);
 		}
+		
+		if (mFileWrappers != null) {
+			params.putFileParam(mFileWrappers);
+		}
 
 		httpRequest.setThreadPoolType(ThreadPoolConst.THREAD_TYPE_FILE_HTTP);
 		httpRequest.post(mUrl, params, handler);
+		
+		return httpRequest;
 	}
 
 	public static void enableLog() {

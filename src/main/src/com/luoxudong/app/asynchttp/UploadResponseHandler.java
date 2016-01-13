@@ -182,7 +182,7 @@ public class UploadResponseHandler extends ResponseHandler {
 			
 			writedLen += writeLen;
 			
-			if (mFileCallable != null && (System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL) {
+			if (mFileCallable != null && ((System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL || writedLen == contentLength)) {
 				AsyncHttpLog.d(TAG, "已上传大小【已传大小:" + (fileWrapper.getStartPos() + writedLen) + "==块大小:" + contentLength + "==总大小" + totalLength + "】");
 				sendTransferingMessage(attrName, totalLength, fileWrapper.getStartPos() + writedLen);
 				timeStamp = System.currentTimeMillis();//每一秒调用一次

@@ -58,7 +58,7 @@ public class UploadRequestParams extends FormRequestParams {
      */
     public void putFileParam(Map<String, FileWrapper> source) {
         for(Map.Entry<String, FileWrapper> entry : source.entrySet()) {
-        	putFormParam(entry.getKey(), entry.getValue());
+        	putFileParam(entry.getKey(), entry.getValue());
         }
     }
     
@@ -67,7 +67,7 @@ public class UploadRequestParams extends FormRequestParams {
      * @param key 参数key
      * @param value 参数值
      */
-    public void putFormParam(String key, FileWrapper value){
+    public void putFileParam(String key, FileWrapper value){
 		if (key != null && value != null) {
 			mFileParams.put(key, value);
 		}

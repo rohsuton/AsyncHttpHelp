@@ -199,7 +199,7 @@ public class DownloadResponseHandler extends ResponseHandler {
 				startPost += length;
 				randomAccessFile.write(buffer, 0, length);
 				
-				if (mFileCallable != null && (System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL) {
+				if (mFileCallable != null && ((System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL || startPost == totalLength)) {
 					AsyncHttpLog.d(TAG, "下载进度:" + startPost + "/" + totalLength);
 					sendTransferingMessage(totalLength, startPost);
 					timeStamp = System.currentTimeMillis();// 每一秒调用一次
