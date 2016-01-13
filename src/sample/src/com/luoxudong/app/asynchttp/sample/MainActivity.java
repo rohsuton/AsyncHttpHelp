@@ -21,6 +21,7 @@ import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
 import com.luoxudong.app.asynchttp.callable.UploadRequestCallable;
 import com.luoxudong.app.asynchttp.interceptor.JsonRequestInterceptor;
 import com.luoxudong.app.asynchttp.interceptor.JsonResponseInterceptor;
+import com.luoxudong.app.asynchttp.model.FileWrapper;
 import com.luoxudong.app.asynchttp.sample.model.Request;
 import com.luoxudong.app.asynchttp.sample.model.Response;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
@@ -391,6 +392,10 @@ public class MainActivity extends Activity {
 	}
 	
 	private void brokenUpload(){
+		FileWrapper fileWrapper = new FileWrapper();
+		fileWrapper.setFile(new File("/sdcard/Fund.apk"));
+		fileWrapper.setBlockSize(100000);//上传100000字节数据，默认为0，上传至文件末尾
+		fileWrapper.setStartPos(1000);//从1000字节开始上传
 		AsyncHttpRequest request = new AsyncHttpUtil.Builder()
 		.url("http://192.168.100.62:8080/MyHost/fund/upload.do")
 		.setUserAgent("custom user-agent")//设置User-Agent
@@ -401,8 +406,7 @@ public class MainActivity extends Activity {
 		.addHeaderParam("param2", "bbb")
 		.setConnectTimeout(15 * 1000)//设置连接服务器超时时间，默认是30秒
 		.setReadTimeout(15 * 1000)//设置读数据超时时间，默认是30秒
-		.addUploadFile("file", new File("/sdcard/Fund.apk"))//添加文件，也可以调用setFileWrappers方法，同时添加多个文件
-		.addUploadFile("file1", new File("/sdcard/wifi_config.log"))
+		.addFileWrapper("file", fileWrapper)//自定义上传文件，支持断点续传，支持上传指定数据大小
 		.addFormData("md5", "aadfsdf")//添加form参数
 		.setCallable(new UploadRequestCallable() {
 			
