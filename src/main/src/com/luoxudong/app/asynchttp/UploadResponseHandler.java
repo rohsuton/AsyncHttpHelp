@@ -28,7 +28,7 @@ import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
  * Date: 2015年7月17日 下午2:05:55
  */
 public class UploadResponseHandler extends ResponseHandler {
-	private static final String TAG = DownloadResponseHandler.class.getSimpleName();
+	private static final String TAG = UploadResponseHandler.class.getSimpleName();
 	
 	/** 开始传输 */
     protected static final int FILE_TRANSFER_START = 100;
@@ -140,7 +140,6 @@ public class UploadResponseHandler extends ResponseHandler {
 		
 		sendStartTransferMessage();
 		
-		long totalLength = fileWrapper.getFile().length();
 		while (writedLen < contentLength) {
 			try {
 				//从文件中读内容
@@ -183,8 +182,8 @@ public class UploadResponseHandler extends ResponseHandler {
 			writedLen += writeLen;
 			
 			if (mFileCallable != null && ((System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL || writedLen == contentLength)) {
-				AsyncHttpLog.d(TAG, "已上传大小【已传大小:" + (fileWrapper.getStartPos() + writedLen) + "==块大小:" + contentLength + "==总大小" + totalLength + "】");
-				sendTransferingMessage(attrName, totalLength, fileWrapper.getStartPos() + writedLen);
+				AsyncHttpLog.d(TAG, "已上传大小【已传大小:" + writedLen + "==块大小:" + contentLength);
+				sendTransferingMessage(attrName, contentLength, writedLen);
 				timeStamp = System.currentTimeMillis();//每一秒调用一次
 			}
 			
