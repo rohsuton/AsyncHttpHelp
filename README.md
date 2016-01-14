@@ -1,249 +1,108 @@
-AsyncHttpHelp
-=========================
-    只需调用一行代码即可完成http网络传输请求。该源码封装了http网络传输相关的各种接口，包括get请求、
-    post请求、文件上传（支持多文件断点上传），文件下载（支持断点下载），另外可以轻松自定义请求参数。
-# Usage
-    工具类AsyncHttpUtil常用接口如下：
+# AsyncHttpHelp #
+
+AsyncHttpHelp是一个android平台下基于httpclient开发的HTTP网络请求库。
+
+## 优点 ##
+1. 功能齐全，提供常用的http网络访问接口。
+2. 轻量级，无任何第三方库依赖，库大小为90K左右。
+3. 定制化，自定义json解析库，支持请求参数，返回内容预处理。
+
+## 功能 ##
+1. 普通get请求
+2. 普通post请求
+3. Form表单提交数据
+4. 二进制数据传输
+5. json格式内容传输（json字符串自动转java对象，java对象自动转json字符串）
+6. 普通文件上传/下载
+7. 断点上传/下载
+8. 分块上传文件
+9. session保持
+10. 自定义cookie、http头部信息等
+11. 取消请求
+12. 自定义json解析器
+13. 请求内容，返回内容预处理
+14. 设置请求结果是否在UI线程执行
+15. 更多。。。
+
+## 测试示例 ##
+![效果](http://img.blog.csdn.net/20160114114709996?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+
+## 用法示例 ##
+
+> **GET请求**
+
+    new AsyncHttpUtil.Builder()
+    		.url("http://www.luoxudong.com/")
+    		.setCallable(new SimpleRequestCallable() {
+    			@Override
+    			public void onFailed(int errorCode, String errorMsg) {
+    				//请求失败
+    			}
+    			
+    			@Override
+    			public void onSuccess(String responseInfo) {
+    				//请求成功
+    			}
+    		})
+    		.build().get();
+
+
+> **GET请求（返回结果为JSON，自动转换成JAVA对象）**
+
+    new AsyncHttpUtil.Builder()
+    		.url("http://www.bchun.com/fund/service.do?func=getProvinces")
+    		.setResponseClass(Response.class)//返回的json对象类型，自动转换改类的对象
+    		.setJsonResponseInterceptor(new JsonResponseInterceptor<Response>() {//返回结果拦截器，方便自定义json解析器以及对返回结果作简单预处理。
+    			@Override
+    			public Response convertJsonToObj(String responseStr, Class<Response> mResponseClass) {
+    				return new Gson().fromJson(responseStr, mResponseClass);
+    			}
     
-    /**
-	 * 设置json返回参数解析规则
-	 * @param responseAdapter
-	 */
-	public static void setResponseAdapter(BaseJsonHttpResponseAdapter responseAdapter)
-	
-	/**
-	 * 设置ssl请求
-	 * @param sslSocketFactory
-	 */
-	public static void setSSLSocketFactory(SSLSocketFactory sslSocketFactory)
-	
-	/**
-	 * 发送简单的http get请求
-	 * @param url 请求url地址
-	 * @param callable 返回结果回调
-	 */
-	public static void simpleGetHttpRequest(String url, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送简单的http get请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param callable 返回结果回调
-	 */
-	public static void simpleGetHttpRequest(String url, Map<String, String> urlParams, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送简单的http get请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义链接超时时间
-	 * @param callable 返回结果回调
-	 */
-	public static void simpleGetHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送http get请求，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void jsonGetHttpRequest(String url, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送http get请求，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义链接超时时间
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void jsonGetHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送简单http post请求
-	 * @param url 请求url地址
-	 * @param callable 返回结果回调
-	 */
-	public static void simplePostHttpRequest(String url, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送简单http post请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义链接超时时间
-	 * @param contentType 请求内容类型
-	 * @param requestBody 消息体内容
-	 * @param callable 返回结果回调
-	 */
-	public static void simplePostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, String requestBody, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送post请求，请求内容为json对象，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param requestInfo 请求内容的json对象
-	 * @param responseClass 返回结果对象类型
-	 * @param callable 返回结果回调
-	 */
-	public static <T extends Serializable, M extends BaseResponse<M>> void jsonPostHttpRequest(String url, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送post请求，请求内容为json对象，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param requestInfo 请求内容的json对象
-	 * @param responseClass 返回结果对象类型
-	 * @param callable 返回结果回调
-	 */
-	public static <T extends Serializable, M extends BaseResponse<M>> void jsonPostHttpRequest(String url, Map<String, String> headerParams, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送post请求，请求内容为json对象，返回结果为json对象
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param contentType 请求内容类型
-	 * @param requestInfo 请求内容的json对象
-	 * @param responseClass 返回结果对象类型
-	 * @param callable 返回结果回调
-	 */
-	public static <T extends Serializable, M extends BaseResponse<M>> void jsonPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, T requestInfo, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送form键值参数请求
-	 * @param url 请求url地址
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formPostHttpRequest(String url, Map<String, String> formDatas, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送form键值参数请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param contentType 请求内容类型
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, Map<String, String> formDatas, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送form键值参数请求,返回结果为json对象
-	 * @param url 请求url地址
-	 * @param formDatas form键值参数
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> formDatas, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送form键值参数请求,返回结果为json对象
-	 * @param url 请求url地址
-	 * @param headerParams url中带的参数，会进行url编码
-	 * @param formDatas form键值参数
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> headerParams, Map<String, String> formDatas, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送form键值参数请求,返回结果为json对象
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param contentType 请求内容类型
-	 * @param formDatas form键值参数
-	 * @param responseClass 返回结果类型
-	 * @param callable 返回结果回调
-	 */
-	public static <M extends BaseResponse<M>> void formPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String contentType, Map<String, String> formDatas, Class<M> responseClass, JsonRequestCallable<M> callable)
-	
-	/**
-	 * 发送模拟form-data表单请求
-	 * @param url 请求url地址
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formDataPostHttpRequest(String url, Map<String, String> formDatas, SimpleRequestCallable callable)
-	
-	/**
-	 * 发送模拟form-data表单请求
-	 * @param url 请求url地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param formDatas form键值参数
-	 * @param callable 返回结果回调
-	 */
-	public static void formDataPostHttpRequest(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Map<String, String> formDatas, SimpleRequestCallable callable)
-	
-	/**
-	 * 普通下载
-	 * @param url 下载url
-	 * @param fileDir  本地保存目录
-	 * @param fileName 本地保存文件名
-	 * @param callable 下载回调方法
-	 */
-	public static void download(String url, String fileDir, String fileName, DownloadRequestCallable callable)
-	
-	/**
-	 * 断点下载
-	 * @param url 下载url
-	 * @param fileDir 本地保存目录
-	 * @param fileName 本地保存文件名
-	 * @param startPos 断点下载开始位置
-	 * @param callable 下载回调方法
-	 */
-	public static void download(String url, String fileDir, String fileName, long startPos, DownloadRequestCallable callable)
-	
-	/**
-	 * 下载文件，支持断点续传
-	 * @param url 下载url
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param fileDir 本地保存目录
-	 * @param fileName 本地保存文件名
-	 * @param startPos 下载开始位置
-	 * @param endPos 下载结束位置
-	 * @param callable 下载回调方法
-	 */
-	public static void download(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, String fileDir, String fileName, long startPos, long endPos, DownloadRequestCallable callable)
-	
-	/**
-	 * 单文件普通上传
-	 * @param url 上传地址
-	 * @param formDatas 表单参数
-	 * @param name 文件属性名
-	 * @param file 要上产的文件
-	 * @param callable 上传回调
-	 */
-	public static void upload(String url, Map<String, String> formDatas, String name, File file, UploadRequestCallable callable)
-	
-	/**
-	 * 单文件断点上传
-	 * @param url 上传地址
-	 * @param formDatas 表单参数
-	 * @param name 文件属性名
-	 * @param fileWrapper 要上传的文件信息
-	 * @param callable 上传回调
-	 */
-	public static void upload(String url, Map<String, String> formDatas, String name, FileWrapper fileWrapper, UploadRequestCallable callable)
-	
-	/**
-	 * 文件上传，支持多文件断点续传
-	 * @param url 上传地址
-	 * @param urlParams url中带的参数，会进行url编码
-	 * @param headerParams 自定义http头部信息，设置cookie可通过该属性设置
-	 * @param timeout 自定义连接超时时间
-	 * @param formDatas 表单参数
-	 * @param fileWrappers 上传的文件列表
-	 * @param callable 上传回调
-	 */
-	public static void upload(String url, Map<String, String> urlParams, Map<String, String> headerParams, int timeout, Map<String, String> formDatas, Map<String, FileWrapper> fileWrappers, UploadRequestCallable callable)
+    			@Override
+    			public boolean checkResponse(Response response) {//可以根据返回的结果判定该请求是否成功，如果返回true，则在callable中调用onSuccess回调方法，为false时调用onFailed回调方法
+    				if (response.getServerResult().getResultCode() == 0){
+    					return true;
+    				}
+					setErrorCode(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode());
+    				setErrorMsg(response.getServerResult().getResultMessage());
+    				return false;
+    			}
+    			
+    		})
+    		.setCallable(new JsonRequestCallable<Response>() {//回调
+    
+    			@Override
+    			public void onFailed(int errorCode, String errorMsg) {
+    				//请求失败
+    			}
+    			
+    			@Override
+    			public void onSuccess(Response responseInfo) {
+    				//请求成功
+    			}
+    		})
+    		.build().get();
+
+> **POST请求**
+
+    new AsyncHttpUtil.Builder()
+    		.url("http://www.bchun.com/fund/service.do?func=getProvinces")
+    		.setStrBody("body内容")//post内容
+    		.setCallable(new SimpleRequestCallable() {
+    			@Override
+    			public void onFailed(int errorCode, String errorMsg) {
+    				//请求失败
+    			}
+
+    			@Override
+    			public void onSuccess(String responseInfo) {
+    				//请求成功
+    			}
+    		})
+    		.build().post();
+
+
+
+ 
+
+**详细使用方法请查看源码中附带的demo**
