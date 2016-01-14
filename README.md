@@ -25,7 +25,7 @@ AsyncHttpHelp是一个android平台下基于httpclient开发的HTTP网络请求�
 15. 更多。。。
 
 ## 测试示例 ##
-![效果](http://img.blog.csdn.net/20160114114709996?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+![效果](http://img.blog.csdn.net/20160114120946540?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
 ## 用法示例 ##
 
