@@ -1,6 +1,6 @@
 # AsyncHttpHelp #
 
-AsyncHttpHelp是一个android平台下基于httpclient开发的HTTP网络请求库。
+AsyncHttpHelp是一个android平台下基于httpclient开发的HTTP网络请求工具。
 
 ## 优点 ##
 1. 功能齐全，提供常用的http网络访问接口。
