@@ -6,9 +6,10 @@ import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Looper;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -28,10 +29,18 @@ import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
 import com.luoxudong.app.asynchttp.utils.ByteUtil;
 
 public class MainActivity extends Activity {
-
+	private static final int MSG_HANDLER_MSG = 1;
+	
+	private Handler mHandler = new Handler(){
+		public void handleMessage(android.os.Message msg) {
+			Toast.makeText(MainActivity.this, (String)msg.obj, Toast.LENGTH_SHORT).show();
+		};
+	};
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 		AsyncHttpLog.enableLog();
 	}
@@ -39,15 +48,33 @@ public class MainActivity extends Activity {
 	public void onClick(View v){
 		switch (v.getId()) {
 		case R.id.btn_1:
-			//getRequest();
-			//getRequestForJsonObj();
-			//postRequest();
-			//postFormRequest();
-			//postBinRequest();
-			//postRequestForJsonObj();
-			//simpleDownload();
-			//brokenDownload();
-			//upload();
+			getRequest();
+			break;
+		case R.id.btn_2:
+			getRequestForJsonObj();
+			break;
+		case R.id.btn_3:
+			postRequest();
+			break;
+		case R.id.btn_4:
+			postFormRequest();
+			break;
+		case R.id.btn_5:
+			postBinRequest();
+			break;
+		case R.id.btn_6:
+			postRequestForJsonObj();
+			break;
+		case R.id.btn_7:
+			simpleDownload();
+			break;
+		case R.id.btn_8:
+			brokenDownload();
+			break;
+		case R.id.btn_9:
+			simpleUpload();
+			break;
+		case R.id.btn_10:
 			brokenUpload();
 			break;
 		default:
@@ -70,12 +97,18 @@ public class MainActivity extends Activity {
 		.setCallable(new SimpleRequestCallable() {
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				Toast.makeText(MainActivity.this, "请求失败:" + errorMsg, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求失败:" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(String responseInfo) {
-				Toast.makeText(MainActivity.this, "请求成功：" + responseInfo, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求成功：" + responseInfo;
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().get();
@@ -115,12 +148,18 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				Toast.makeText(MainActivity.this, "请求失败:" + errorMsg, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求失败:" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(Response responseInfo) {
-				Toast.makeText(MainActivity.this, "请求成功：" + responseInfo.getServerResult().getResultMessage(), Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求成功：" + responseInfo.getServerResult().getResultMessage();
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().get();
@@ -143,12 +182,18 @@ public class MainActivity extends Activity {
 		.setCallable(new SimpleRequestCallable() {
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				Toast.makeText(MainActivity.this, "请求失败:" + errorMsg, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求失败:" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(String responseInfo) {
-				Toast.makeText(MainActivity.this, "请求成功：" + responseInfo, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求成功：" + responseInfo;
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().post();
@@ -171,12 +216,18 @@ public class MainActivity extends Activity {
 		.setCallable(new SimpleRequestCallable() {
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				Toast.makeText(MainActivity.this, "请求失败:" + errorMsg, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求失败:" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(String responseInfo) {
-				Toast.makeText(MainActivity.this, "请求成功：" + responseInfo, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求成功：" + responseInfo;
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().post();
@@ -199,12 +250,18 @@ public class MainActivity extends Activity {
 			
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				Toast.makeText(MainActivity.this, "请求失败:" + errorMsg, Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求失败:" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(byte[] buffer) {
-				Toast.makeText(MainActivity.this, "请求成功：" + ByteUtil.getHexStr(buffer), Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求成功：" + ByteUtil.getHexStr(buffer);
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().post();
@@ -260,17 +317,18 @@ public class MainActivity extends Activity {
 		.setCallable(new JsonRequestCallable<Response>() {
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				if (Looper.myLooper() == Looper.getMainLooper()) {
-					Log.e(">>>", "当前在主线程中执行");
-					Toast.makeText(MainActivity.this, "请求失败:" + errorMsg, Toast.LENGTH_LONG).show();
-				}else{
-					Log.e(">>>", "当前不在主线程中执行");
-				}
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求失败:" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(Response responseInfo) {
-				Toast.makeText(MainActivity.this, "请求成功：" + responseInfo.getServerResult().getResultMessage(), Toast.LENGTH_LONG).show();
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "请求成功：" + responseInfo.getServerResult().getResultMessage();
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().post();
@@ -278,7 +336,7 @@ public class MainActivity extends Activity {
 	
 	private void simpleDownload(){
 		new AsyncHttpUtil.Builder()
-		.url("http://down.sandai.net/thunderspeed/ThunderSpeed1.0.33.358.exe")
+		.url("http://shouji.360tpcdn.com/151125/1259d7ddba8a048c2b9e778c9b5a9d04/com.bchun.fundqa_5.apk")
 		//.setUserAgent("custom user-agent")//设置User-Agent
 		//.addCookie("sid", "00fcb944b86443d580139ef7ab766655")//添加cookie
 		//.addUrlParam("p1", "1")//添加url参数，或者使用setUrlParams(urlParams)设置url参数
@@ -288,24 +346,31 @@ public class MainActivity extends Activity {
 		//.setConnectTimeout(15 * 1000)//设置连接服务器超时时间，默认是30秒
 		//.setReadTimeout(15 * 1000)//设置读数据超时时间，默认是30秒
 		.setDownloadFileDir("/sdcard")//文件本地保存路径
-		.setDownloadfileName("a.exe")//文件名称
+		.setDownloadfileName("fund.apk")//文件名称
 		.setCallable(new DownloadRequestCallable() {
 			
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "下载失败：" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onTransfering(long totalLength, long transferedLength) {
-				// TODO Auto-generated method stub
-				super.onTransfering(totalLength, transferedLength);
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "下载进度：" + transferedLength + "/" + totalLength;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(String responseInfo) {
-				// TODO Auto-generated method stub
-				super.onSuccess(responseInfo);
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "下载完成";
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().download();
@@ -313,7 +378,7 @@ public class MainActivity extends Activity {
 	
 	private void brokenDownload(){
 		AsyncHttpRequest request = new AsyncHttpUtil.Builder()
-		.url("http://down.sandai.net/thunderspeed/ThunderSpeed1.0.33.358.exe")
+		.url("http://shouji.360tpcdn.com/151125/1259d7ddba8a048c2b9e778c9b5a9d04/com.bchun.fundqa_5.apk")
 		//.setUserAgent("custom user-agent")//设置User-Agent
 		//.addCookie("sid", "00fcb944b86443d580139ef7ab766655")//添加cookie
 		//.addUrlParam("p1", "1")//添加url参数，或者使用setUrlParams(urlParams)设置url参数
@@ -323,31 +388,38 @@ public class MainActivity extends Activity {
 		//.setConnectTimeout(15 * 1000)//设置连接服务器超时时间，默认是30秒
 		//.setReadTimeout(15 * 1000)//设置读数据超时时间，默认是30秒
 		.setDownloadFileDir("/sdcard")//文件本地保存路径
-		.setDownloadfileName("a.exe")//文件名称
+		.setDownloadfileName("fund.apk.temp")//文件名称
 		.setFileStartPos(1000)//设置续下载开始位置
 		.setCallable(new DownloadRequestCallable() {
 			
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "下载失败：" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onTransfering(long totalLength, long transferedLength) {
-				// TODO Auto-generated method stub
-				super.onTransfering(totalLength, transferedLength);
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "下载进度：" + transferedLength + "/" + totalLength;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(String responseInfo) {
-				// TODO Auto-generated method stub
-				super.onSuccess(responseInfo);
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "下载完成";
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().download();
 	}
 	
-	private void upload(){
+	private void simpleUpload(){
 		AsyncHttpRequest request = new AsyncHttpUtil.Builder()
 		.url("http://192.168.100.62:8080/MyHost/fund/upload.do")
 		.setUserAgent("custom user-agent")//设置User-Agent
@@ -365,27 +437,42 @@ public class MainActivity extends Activity {
 			
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				Log.i(">>>>>>>", "上传失败");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传失败：" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onTransfering(String name, long totalLength, long transferedLength) {
-				Log.i(">>>>>>>", "上传进度：" + name + ">>>" + totalLength + ">>>" + transferedLength);
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传进度：" + name + ">>>" + totalLength + ">>>" + transferedLength;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onTransferSuc(String name) {
-				Log.i(">>>>>>>", "文件" + name + "上传完成");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "文件" + name + "上传完成";
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(String responseInfo) {
-				Log.i(">>>>>>>", "上传成功！");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传成功！";
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onCancel() {
-				Log.i(">>>>>>>", "上传取消");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传取消";
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().upload();
@@ -412,27 +499,42 @@ public class MainActivity extends Activity {
 			
 			@Override
 			public void onFailed(int errorCode, String errorMsg) {
-				Log.i(">>>>>>>", "上传失败");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传失败：" + errorMsg;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onTransfering(String name, long totalLength, long transferedLength) {
-				Log.i(">>>>>>>", "上传进度：" + name + ">>>" + totalLength + ">>>" + transferedLength);
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传进度：" + name + ">>>" + totalLength + ">>>" + transferedLength;
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onTransferSuc(String name) {
-				Log.i(">>>>>>>", "文件" + name + "上传完成");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "文件" + name + "上传完成";
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onSuccess(String responseInfo) {
-				Log.i(">>>>>>>", "上传成功！");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传成功！";
+				mHandler.sendMessage(message);
 			}
 			
 			@Override
 			public void onCancel() {
-				Log.i(">>>>>>>", "上传取消");
+				Message message = new Message();
+				message.what = MSG_HANDLER_MSG;
+				message.obj = "上传取消";
+				mHandler.sendMessage(message);
 			}
 		})
 		.build().upload();
