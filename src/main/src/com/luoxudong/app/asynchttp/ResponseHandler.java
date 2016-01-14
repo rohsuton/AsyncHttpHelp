@@ -25,6 +25,7 @@ import org.apache.http.util.EntityUtils;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 
 import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
@@ -184,7 +185,7 @@ public class ResponseHandler {
     
     public void onSuccess(int statusCode, Object content) {
     	if (mCallable != null){
-    		mCallable.onSuccess(content.toString());
+    		mCallable.onSuccess(content == null ? "" : content.toString());
     	}
     }
 
