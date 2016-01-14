@@ -20,6 +20,7 @@ import com.luoxudong.app.asynchttp.callable.DownloadRequestCallable;
 import com.luoxudong.app.asynchttp.callable.JsonRequestCallable;
 import com.luoxudong.app.asynchttp.callable.SimpleRequestCallable;
 import com.luoxudong.app.asynchttp.callable.UploadRequestCallable;
+import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
 import com.luoxudong.app.asynchttp.interceptor.JsonRequestInterceptor;
 import com.luoxudong.app.asynchttp.interceptor.JsonResponseInterceptor;
 import com.luoxudong.app.asynchttp.model.FileWrapper;
@@ -139,6 +140,7 @@ public class MainActivity extends Activity {
 				if (response.getServerResult().getResultCode() == 0){
 					return true;
 				}
+				setErrorCode(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode());
 				setErrorMsg(response.getServerResult().getResultMessage());
 				return false;
 			}
