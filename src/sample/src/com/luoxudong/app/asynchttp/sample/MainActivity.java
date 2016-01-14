@@ -311,6 +311,7 @@ public class MainActivity extends Activity {
 				if (response.getServerResult().getResultCode() == 0){
 					return true;
 				}
+				setErrorCode(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode());
 				setErrorMsg(response.getServerResult().getResultMessage());
 				return false;
 			}
@@ -424,14 +425,14 @@ public class MainActivity extends Activity {
 	private void simpleUpload(){
 		AsyncHttpRequest request = new AsyncHttpUtil.Builder()
 		.url("http://192.168.100.62:8080/MyHost/fund/upload.do")
-		.setUserAgent("custom user-agent")//设置User-Agent
-		.addCookie("sid", "00fcb944b86443d580139ef7ab766655")//添加cookie
-		.addUrlParam("p1", "1")//添加url参数，或者使用setUrlParams(urlParams)设置url参数
-		.addUrlParam("p2", "2")
-		.addHeaderParam("param1", "aaa")//设置http头部信息，或者使用setHeaderParams(headerParams)设置http头部信息
-		.addHeaderParam("param2", "bbb")
-		.setConnectTimeout(15 * 1000)//设置连接服务器超时时间，默认是30秒
-		.setReadTimeout(15 * 1000)//设置读数据超时时间，默认是30秒
+		//.setUserAgent("custom user-agent")//设置User-Agent
+		//.addCookie("sid", "00fcb944b86443d580139ef7ab766655")//添加cookie
+		//.addUrlParam("p1", "1")//添加url参数，或者使用setUrlParams(urlParams)设置url参数
+		//.addUrlParam("p2", "2")
+		//.addHeaderParam("param1", "aaa")//设置http头部信息，或者使用setHeaderParams(headerParams)设置http头部信息
+		//.addHeaderParam("param2", "bbb")
+		//.setConnectTimeout(15 * 1000)//设置连接服务器超时时间，默认是30秒
+		//.setReadTimeout(15 * 1000)//设置读数据超时时间，默认是30秒
 		.addUploadFile("file", new File("/sdcard/Fund.apk"))//添加文件，也可以调用setFileWrappers方法，同时添加多个文件
 		.addUploadFile("file1", new File("/sdcard/wifi_config.log"))
 		.addFormData("md5", "aadfsdf")//添加form参数
@@ -487,14 +488,14 @@ public class MainActivity extends Activity {
 		fileWrapper.setStartPos(1000);//从1000字节开始上传
 		AsyncHttpRequest request = new AsyncHttpUtil.Builder()
 		.url("http://192.168.100.62:8080/MyHost/fund/upload.do")
-		.setUserAgent("custom user-agent")//设置User-Agent
-		.addCookie("sid", "00fcb944b86443d580139ef7ab766655")//添加cookie
-		.addUrlParam("p1", "1")//添加url参数，或者使用setUrlParams(urlParams)设置url参数
-		.addUrlParam("p2", "2")
-		.addHeaderParam("param1", "aaa")//设置http头部信息，或者使用setHeaderParams(headerParams)设置http头部信息
-		.addHeaderParam("param2", "bbb")
-		.setConnectTimeout(15 * 1000)//设置连接服务器超时时间，默认是30秒
-		.setReadTimeout(15 * 1000)//设置读数据超时时间，默认是30秒
+		//.setUserAgent("custom user-agent")//设置User-Agent
+		//.addCookie("sid", "00fcb944b86443d580139ef7ab766655")//添加cookie
+		//.addUrlParam("p1", "1")//添加url参数，或者使用setUrlParams(urlParams)设置url参数
+		//.addUrlParam("p2", "2")
+		//.addHeaderParam("param1", "aaa")//设置http头部信息，或者使用setHeaderParams(headerParams)设置http头部信息
+		//.addHeaderParam("param2", "bbb")
+		//.setConnectTimeout(15 * 1000)//设置连接服务器超时时间，默认是30秒
+		//.setReadTimeout(15 * 1000)//设置读数据超时时间，默认是30秒
 		.addFileWrapper("file", fileWrapper)//自定义上传文件，支持断点续传，支持上传指定数据大小
 		.addFormData("md5", "aadfsdf")//添加form参数
 		.setCallable(new UploadRequestCallable() {
