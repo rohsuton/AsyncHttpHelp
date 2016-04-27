@@ -38,7 +38,7 @@ import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
  * </pre>
  */
 public class AsyncHttpUtil {
-	private static final String TAG = "AsyncHttpUtil";
+	private static final String TAG = AsyncHttpUtil.class.getSimpleName();
 	
 	/** 返回结果是否在主线程中执行 */
 	private boolean mMainThread = true;
@@ -151,11 +151,6 @@ public class AsyncHttpUtil {
 	}
 	
 	public <M> AsyncHttpRequest get() {
-		if (TextUtils.isEmpty(mUrl)){
-			Log.e(TAG, "URL不能为空！");
-			return null;
-		}
-
 		if (mResponseClass != null && mJsonResponseInterceptor == null){
 			Log.e(TAG, "setResponseClass和setJsonResponseInterceptor必须同时使用");
 			return null;
@@ -199,11 +194,6 @@ public class AsyncHttpUtil {
 	}
 
 	public <M> AsyncHttpRequest post() {
-		if (TextUtils.isEmpty(mUrl)){
-			Log.e(TAG, "URL不能为空！");
-			return null;
-		}
-
 		if (mRequestObj != null && mJsonRequestInterceptor == null){
 			Log.e(TAG, "setRequestObj和setJsonRequestInterceptor必须同时使用");
 			return null;
@@ -279,11 +269,6 @@ public class AsyncHttpUtil {
 	}
 
 	public AsyncHttpRequest download() {
-		if (TextUtils.isEmpty(mUrl)){
-			Log.e(TAG, "URL不能为空！");
-			return null;
-		}
-
 		AsyncHttpRequest httpRequest = new AsyncHttpRequest();
 		DownloadRequestParams params = new DownloadRequestParams();
 		DownloadResponseHandler handler = new DownloadResponseHandler(mDownloadCallable);
@@ -321,11 +306,6 @@ public class AsyncHttpUtil {
 	}
 
 	public AsyncHttpRequest upload() {
-		if (TextUtils.isEmpty(mUrl)){
-			Log.e(TAG, "URL不能为空！");
-			return null;
-		}
-
 		if (mFileWrappers == null || mFileWrappers.size() == 0){
 			Log.e(TAG, "没有选中上传的文件！");
 			return null;
@@ -377,6 +357,10 @@ public class AsyncHttpUtil {
 	
 	public static void disableLog() {
 		AsyncHttpLog.disableLog();
+	}
+	
+	public static void close() {
+		AsyncHttpClient.closeAsyHttpClient();
 	}
 	
 	public static class Builder {

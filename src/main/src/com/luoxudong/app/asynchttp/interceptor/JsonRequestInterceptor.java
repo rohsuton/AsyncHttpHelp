@@ -16,7 +16,7 @@ package com.luoxudong.app.asynchttp.interceptor;
  * Create by: 罗旭东
  * Date: 2016年1月7日 下午3:00:00
  */
-public abstract  class JsonRequestInterceptor {
+public abstract class JsonRequestInterceptor {
     /**
      * 把指定对象转换成json字符串
      * @param requestObj

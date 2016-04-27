@@ -32,6 +32,9 @@ import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.HttpContext;
 
+import android.text.TextUtils;
+import android.view.TextureView;
+
 import com.luoxudong.app.asynchttp.exception.AsyncHttpException;
 import com.luoxudong.app.asynchttp.exception.AsyncHttpExceptionCode;
 import com.luoxudong.app.asynchttp.interfaces.IHttpRequestCancelListener;
@@ -296,15 +299,15 @@ public class AsyncHttpTask extends AsyncHttpTaskObject {
      * 构建HttpRequest对象
      * @return
      */
-    private boolean buildHttpRequest()
-    {
-    	mUrl = getUrlWithQueryString(mUrl, mRequestParams);
-    	
-    	if (mRequestMethodName == null || mUrl == null)
-    	{
-    		AsyncHttpLog.e(TAG, "url为空!");
+    private boolean buildHttpRequest(){
+    	if (mRequestMethodName == null || TextUtils.isEmpty(mUrl)){
+    		if (mResponseHandler != null) {
+				mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.urlIsNull.getErrorCode(), new AsyncHttpException(AsyncHttpExceptionCode.urlIsNull.getErrorCode(), "URL地址为空!"));
+			}
     		return false;
     	}
+    	
+    	mUrl = getUrlWithQueryString(mUrl, mRequestParams);
     	
     	if (mRequestMethodName.equalsIgnoreCase(HttpGet.METHOD_NAME)){
     		mHttpRequest = new HttpGet(mUrl);

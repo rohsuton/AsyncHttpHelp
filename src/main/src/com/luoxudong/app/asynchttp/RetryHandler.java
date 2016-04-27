@@ -94,7 +94,7 @@ public class RetryHandler implements HttpRequestRetryHandler {
         if(retry) {
             SystemClock.sleep(RETRY_SLEEP_TIME_MILLIS);
         } else {
-            exception.printStackTrace();
+            //exception.printStackTrace();
         }
 
         return retry;
