@@ -30,14 +30,24 @@ public class ThreadPoolConst {
 	 * 文件传输线程池
 	 */
 	public static final int THREAD_TYPE_FILE_HTTP = 2;
+	
+	/**
+	 * 其他线程池
+	 */
+	public static final int THREAD_TYPE_OTHERS = 3;
+	
+	/**
+	 * 空闲线程存活时间,60秒
+	 */
+	public static final long KEEP_ALIVE_TIME = 60;
 
 	/**
-	 * 空闲线程存活时间,5秒
+	 * 默认核心线程池大小
 	 */
-	public static final long KEEP_ALIVE_TIME = 5000;
-
+	public final static int DEFAULT_CORE_POOL_SIZE = 3;
+	
 	/**
 	 * 有界队列长度
 	 */
-	public final static int DEFAULT_WORK_QUEUE_SIZE = 10;
+	public final static int DEFAULT_WORK_QUEUE_SIZE = 30;
 }
