@@ -30,11 +30,4 @@
 		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>AsyncHttpHelp_src</name>
-			<type>2</type>
-			<location>E:/个人数据/项目/AsyncHttpHelp/trunk/src/main/src</location>
-		</link>
-	</linkedResources>
 </projectDescription>

@@ -21,6 +21,8 @@ import java.util.List;
  * </pre>
  */
 public class Request implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private String key1 = null;
 	
 	private int key2 = 0;
