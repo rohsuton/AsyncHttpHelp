@@ -10,7 +10,6 @@
 package com.luoxudong.app.asynchttp.threadpool.manager;
 
 import com.luoxudong.app.asynchttp.threadpool.constant.ThreadPoolConst;
-import com.luoxudong.app.threadpool.manager.ThreadPoolParams;
 
 
 /** 
