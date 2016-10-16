@@ -11,8 +11,10 @@ package com.luoxudong.app.asynchttp;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.SocketException;
 
@@ -69,6 +71,7 @@ public class DownloadResponseHandler extends ResponseHandler {
 	@Override
 	protected void sendResponseMessage(CookieStore cookieStore, HttpResponse response) {
 		long totalLength = 0;//更新下载文件总长度
+		boolean isChunked = false;
 		HttpEntity httpEntity = response.getEntity();
 		StatusLine status = response.getStatusLine();
 		
@@ -78,14 +81,14 @@ public class DownloadResponseHandler extends ResponseHandler {
 		}
 		
 		if (httpEntity.isChunked()) {//Chunked解码
-			//这里有一个bug，Chunked解码的结果，无法通过这种方法获取实际长度
-			totalLength = httpEntity.getContentLength();
+			//Chunked解码的结果，无法通过这种方法获取实际长度，此时不做断点下载
+			isChunked = true;
 		} else {
 			totalLength = httpEntity.getContentLength();
 			AsyncHttpLog.w(TAG, "文件大小:" + totalLength);
 		}
 		
-		if (totalLength <= 0) {
+		if (totalLength <= 0 && !isChunked) {
 			sendFailureMessage(AsyncHttpExceptionCode.invalidDownloadLength.getErrorCode(), new AsyncHttpException("下载文件长度无效"));
 			return;
 		}
@@ -98,15 +101,17 @@ public class DownloadResponseHandler extends ResponseHandler {
 			localFile.getParentFile().mkdirs();
 		}
 		
-		if (localFile.exists() && localFile.length() != totalLength){//文件存在但大小不一致，则删除
+		if (isChunked || (localFile.exists() && localFile.length() != totalLength)){//文件存在但大小不一致，或者chunked编码，则删除
 			localFile.delete();
 		}
 		
+		boolean isNewFile = !localFile.exists();
 		try {
-			boolean isNewFile = !localFile.exists();
-			randomAccessFile = new RandomAccessFile(localFile, "rw");
-			if (isNewFile) {//如果是新文件则指定文件大小 
-				randomAccessFile.setLength(totalLength);
+			if(!isChunked) {
+				randomAccessFile = new RandomAccessFile(localFile, "rw");
+				if (isNewFile) {//如果是新文件则指定文件大小 
+					randomAccessFile.setLength(totalLength);
+				}
 			}
 		} catch (FileNotFoundException e1) {
 			sendFailureMessage(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode(), new AsyncHttpException("文件不存在!"));
@@ -175,43 +180,71 @@ public class DownloadResponseHandler extends ResponseHandler {
 		byte[] buffer = new byte[BUFFER_SIZE];
 		InputStream instream = null;
 		RandomAccessFile randomAccessFile = null;
+		OutputStream outputStream = null;
 		long timeStamp = System.currentTimeMillis();
 		int length = 0;
 		try {
 			instream = response.getEntity().getContent();
 			
-			randomAccessFile = new RandomAccessFile(file, "rw");
-			AsyncHttpLog.d(TAG, "从" + startPost + "位置开始下载");
-			randomAccessFile.seek(startPost);
-			
-			while (startPost != totalLength && length != -1) {
-				length = instream.read(buffer);
+			if (totalLength > 0) {
+				randomAccessFile = new RandomAccessFile(file, "rw");
+				AsyncHttpLog.d(TAG, "从" + startPost + "位置开始下载");
+				randomAccessFile.seek(startPost);
 				
-				if (length == -1) {
-					if (startPost != totalLength) {
-						// 矫正文件大小
-						// sendFailureMessage(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode(),
-						// new AsyncHttpException("文件大小不一致!"));
+				while (startPost != totalLength && length != -1) {
+					length = instream.read(buffer);
+					
+					if (length == -1) {
+						if (startPost != totalLength) {
+							// 矫正文件大小
+							// sendFailureMessage(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode(),
+							// new AsyncHttpException("文件大小不一致!"));
+						}
+						break;
 					}
-					break;
+					
+					startPost += length;
+					randomAccessFile.write(buffer, 0, length);
+					
+					if (mFileCallable != null && ((System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL || startPost == totalLength)) {
+						AsyncHttpLog.d(TAG, "下载进度:" + startPost + "/" + totalLength);
+						sendTransferingMessage(totalLength, startPost);
+						timeStamp = System.currentTimeMillis();// 每一秒调用一次
+					}
 				}
 				
-				startPost += length;
-				randomAccessFile.write(buffer, 0, length);
-				
-				if (mFileCallable != null && ((System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL || startPost == totalLength)) {
-					AsyncHttpLog.d(TAG, "下载进度:" + startPost + "/" + totalLength);
-					sendTransferingMessage(totalLength, startPost);
-					timeStamp = System.currentTimeMillis();// 每一秒调用一次
+				if (startPost == totalLength) {//下载完成
+					StatusLine status = response.getStatusLine();
+					sendSuccessMessage(status.getStatusCode(), response.getAllHeaders(), cookieStore, null);
+				} else if (startPost > totalLength) {
+					sendFailureMessage(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode(), new AsyncHttpException("本地文件长度超过总长度!"));
+					return;
 				}
-			}
-			
-			if (startPost == totalLength) {//下载完成
+			} else {//chunked编码，不支持断点下载
+				outputStream = new FileOutputStream(file);
+				
+				while(length != -1){
+					length = instream.read(buffer);
+					
+					if (length == -1) {
+						break;
+					}
+					
+					startPost += length;
+					
+					outputStream.write(buffer, 0, length);
+					
+					if (mFileCallable != null && ((System.currentTimeMillis() - timeStamp) >= AsyncHttpConst.TRANSFER_REFRESH_TIME_INTERVAL || length == -1)) {
+						AsyncHttpLog.d(TAG, "下载进度:" + startPost + "/" + totalLength);
+						sendTransferingMessage(totalLength, startPost);
+						timeStamp = System.currentTimeMillis();// 每一秒调用一次
+					}
+				}
+				
 				StatusLine status = response.getStatusLine();
 				sendSuccessMessage(status.getStatusCode(), response.getAllHeaders(), cookieStore, null);
-			} else if (startPost > totalLength) {
-				sendFailureMessage(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode(), new AsyncHttpException("本地文件长度超过总长度!"));
-				return;
+				
+				outputStream.flush();
 			}
 			
 		} catch (IllegalStateException e) {
@@ -231,6 +264,13 @@ public class DownloadResponseHandler extends ResponseHandler {
 				}
 			}
 
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 			if (instream != null) {
 				try {
 					instream.close();
