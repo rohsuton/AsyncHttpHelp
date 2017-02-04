@@ -66,16 +66,6 @@ public abstract class AsyncHttpRequest {
 	
 	public AsyncHttpRequest(RequestBuilder<?> builder) {
 		mId = System.nanoTime() - AsyncHttpUtil.sStartTime;
-		mUrl = builder.getUrl();
-		mMainThread = builder.isMainThread();
-		mTag = builder.getTag();
-		mUrlParams = builder.getUrlParams();
-		mHeaderParams = builder.getHeaderParams();
-		mCookies = builder.getCookies();
-		mUserAgent = builder.getUserAgent();
-		mConnectTimeout = builder.getConnectTimeout();
-		mReadTimeout = builder.getReadTimeout();
-		mWriteTimeout = builder.getWriteTimeout();
 	}
 	
 	public abstract AsyncHttpTask build();
@@ -175,5 +165,44 @@ public abstract class AsyncHttpRequest {
 
 	public int getWriteTimeout() {
 		return mWriteTimeout;
+	}
+
+
+	public void setUrl(String url) {
+		mUrl = url;
+	}
+
+	public void setTag(String tag) {
+		mTag = tag;
+	}
+
+	public void setMainThread(boolean mainThread) { mMainThread = mainThread; }
+
+	public void setUrlParams(Map<String, String> urlParams) {
+		mUrlParams = urlParams;
+	}
+
+	public void setHeaderParams(Map<String, String> headerParams) {
+		mHeaderParams = headerParams;
+	}
+
+	public void setCookies(Map<String, String> cookies) {
+		mCookies = cookies;
+	}
+
+	public void setUserAgent(String userAgent) {
+		mUserAgent = userAgent;
+	}
+
+	public void setConnectTimeout(int connectTimeout) {
+		mConnectTimeout = connectTimeout;
+	}
+
+	public void setReadTimeout(int readTimeout) {
+		mReadTimeout = readTimeout;
+	}
+
+	public void setWriteTimeout(int writeTimeout) {
+		mWriteTimeout = writeTimeout;
 	}
 }

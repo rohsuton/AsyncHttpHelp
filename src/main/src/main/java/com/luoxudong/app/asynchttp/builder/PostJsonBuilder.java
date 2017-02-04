@@ -34,24 +34,19 @@ public class PostJsonBuilder extends RequestBuilder<PostJsonBuilder> {
 	
 	@Override
 	public AsyncHttpTask build() {
-		return new PostJsonRequest(this).build();
+		PostJsonRequest request = new PostJsonRequest(this);
+		request.setResponseInterceptor(mResponseInterceptor);
+		request.setResponseClazz(mResponseClazz);
+		request.setReqObj(mReqObj);
+		request.setRequestInterceptor(mRequestInterceptor);
+
+		initRequest(request);//初始化request
+		return request.build();
 	}
 
-	/**
-	 * 设置请求json对应的对象
-	 * @return
-     */
-	public Object getReqObj() {
-		return mReqObj;
-	}
-	
 	public PostJsonBuilder reqObj(Object reqObj) {
 		mReqObj = reqObj;
 		return this;
-	}
-
-	public JsonRequestInterceptor getRequestInterceptor() {
-		return mRequestInterceptor;
 	}
 
 	/**
@@ -63,10 +58,6 @@ public class PostJsonBuilder extends RequestBuilder<PostJsonBuilder> {
 		mRequestInterceptor = requestInterceptor;
 		return this;
 	}
-	
-	public JsonResponseInterceptor getResponseInterceptor() {
-		return mResponseInterceptor;
-	}
 
 	/**
 	 * 设置返回json数据拦截器，拦截返回数据预处理，可以设置自定义json解析库
@@ -76,10 +67,6 @@ public class PostJsonBuilder extends RequestBuilder<PostJsonBuilder> {
 	public PostJsonBuilder responseInterceptor(JsonResponseInterceptor responseInterceptor) {
 		mResponseInterceptor = responseInterceptor;
 		return this;
-	}
-	
-	public Class getResponseClazz() {
-		return mResponseClazz;
 	}
 
 	/**

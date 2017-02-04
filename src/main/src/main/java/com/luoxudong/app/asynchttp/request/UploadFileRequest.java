@@ -49,8 +49,6 @@ public class UploadFileRequest extends AsyncHttpRequest {
 
 	public UploadFileRequest(UploadFileBuilder builder) {
 		super(builder);
-		mFormMap = builder.getFormMap();
-		mFileMap = builder.getFileMap();
 	}
 	
 	@Override
@@ -94,6 +92,14 @@ public class UploadFileRequest extends AsyncHttpRequest {
 				builder.addFormDataPart(key, fileWrapper.getFile().getName(), fileBody);
 			}
 		}
+	}
+
+	public void setFileMap(Map<String, FileWrapper> fileMap) {
+		mFileMap = fileMap;
+	}
+
+	public void setFormMap(Map<String, String> formMap) {
+		mFormMap = formMap;
 	}
 
 	class UploadFileRequestBody extends RequestBody {

@@ -31,7 +31,11 @@ public class PostBytesBuilder extends RequestBuilder<PostBytesBuilder> {
 	
 	@Override
 	public AsyncHttpTask build() {
-		return new PostBytesRequest(this).build();
+		PostBytesRequest request = new PostBytesRequest(this);
+		request.setBuffer(mBuffer);
+
+		initRequest(request);//初始化request
+		return request.build();
 	}
 
 	/**
@@ -42,9 +46,5 @@ public class PostBytesBuilder extends RequestBuilder<PostBytesBuilder> {
 	public PostBytesBuilder buffer(byte[] buffer) {
 		mBuffer = buffer;
 		return this;
-	}
-	
-	public byte[] getBuffer() {
-		return mBuffer;
 	}
 }

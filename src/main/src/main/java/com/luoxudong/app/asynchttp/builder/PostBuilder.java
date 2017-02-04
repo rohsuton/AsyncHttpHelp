@@ -33,7 +33,14 @@ public class PostBuilder extends RequestBuilder<PostBuilder> {
 	
 	@Override
 	public AsyncHttpTask build() {
-		return new PostRequest(this).build();
+		PostRequest request = new PostRequest(this);
+		request.setResponseInterceptor(mResponseInterceptor);
+		request.setResponseClazz(mResponseClazz);
+		request.setBody(mBody);
+		request.setContentType(mContentType);
+
+		initRequest(request);//初始化request
+		return request.build();
 	}
 
 	/**
@@ -56,18 +63,6 @@ public class PostBuilder extends RequestBuilder<PostBuilder> {
         return this;
     }
 
-	public String getBody() {
-		return mBody;
-	}
-	
-	public String getContentType() {
-		return mContentType;
-	}
-
-	public JsonResponseInterceptor getResponseInterceptor() {
-		return mResponseInterceptor;
-	}
-
 	/**
 	 * 设置返回json数据拦截器，拦截返回数据预处理，可以设置自定义json解析库
 	 * @param responseInterceptor 返回结果拦截器
@@ -76,10 +71,6 @@ public class PostBuilder extends RequestBuilder<PostBuilder> {
 	public PostBuilder responseInterceptor(JsonResponseInterceptor responseInterceptor) {
 		mResponseInterceptor = responseInterceptor;
 		return this;
-	}
-
-	public Class getResponseClazz() {
-		return mResponseClazz;
 	}
 
 	/**

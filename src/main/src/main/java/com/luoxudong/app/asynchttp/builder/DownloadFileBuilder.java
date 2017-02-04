@@ -33,7 +33,14 @@ public class DownloadFileBuilder extends RequestBuilder<DownloadFileBuilder> {
 
 	@Override
 	public AsyncHttpTask build() {
-		return new DownloadFileRequest(this).build();
+		DownloadFileRequest request = new DownloadFileRequest(this);
+		request.setFileDir(mFileDir);
+		request.setFileName(mFileName);
+		request.setLength(mLength);
+		request.setOffset(mOffset);
+
+		initRequest(request);//初始化request
+		return request.build();
 	}
 
 	/**
@@ -46,10 +53,6 @@ public class DownloadFileBuilder extends RequestBuilder<DownloadFileBuilder> {
 		return this;
 	}
 
-	public long getOffset() {
-		return mOffset;
-	}
-
 	/**
 	 * 设置本次下载数据大小，默认下载整个文件
 	 * @param length 下载数据大小
@@ -58,10 +61,6 @@ public class DownloadFileBuilder extends RequestBuilder<DownloadFileBuilder> {
 	public DownloadFileBuilder length(long length) {
 		mLength = length;
 		return this;
-	}
-
-	public long getLength() {
-		return mLength;
 	}
 
 	/**
@@ -74,10 +73,6 @@ public class DownloadFileBuilder extends RequestBuilder<DownloadFileBuilder> {
 		return this;
 	}
 
-	public String getFileDir() {
-		return mFileDir;
-	}
-
 	/**
 	 * 设置下载文件本地名称
 	 * @param fileName 文件名
@@ -86,9 +81,5 @@ public class DownloadFileBuilder extends RequestBuilder<DownloadFileBuilder> {
 	public DownloadFileBuilder fileName(String fileName) {
 		mFileName = fileName;
 		return this;
-	}
-
-	public String getFileName() {
-		return mFileName;
 	}
 }

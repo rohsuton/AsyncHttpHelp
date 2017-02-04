@@ -42,10 +42,6 @@ public class PostJsonRequest extends AsyncHttpRequest {
 	
 	public PostJsonRequest(PostJsonBuilder builder) {
 		super(builder);
-		mReqObj = builder.getReqObj();
-		mRequestInterceptor = builder.getRequestInterceptor();
-		mResponseInterceptor = builder.getResponseInterceptor();
-		mResponseClazz = builder.getResponseClazz();
 	}
 	
 	@Override
@@ -88,4 +84,19 @@ public class PostJsonRequest extends AsyncHttpRequest {
 		return mResponseClazz;
 	}
 
+	public void setReqObj(Object reqObj) {
+		mReqObj = reqObj;
+	}
+
+	public void setRequestInterceptor(JsonRequestInterceptor requestInterceptor) {
+		mRequestInterceptor = requestInterceptor;
+	}
+
+	public void setResponseInterceptor(JsonResponseInterceptor responseInterceptor) {
+		mResponseInterceptor = responseInterceptor;
+	}
+
+	public void setResponseClazz(Class responseClazz) {
+		mResponseClazz = responseClazz;
+	}
 }

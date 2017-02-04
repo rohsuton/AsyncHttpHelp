@@ -44,7 +44,13 @@ public class PostFormBuilder extends RequestBuilder<PostFormBuilder> {
 	
 	@Override
 	public AsyncHttpTask build() {
-		return new PostFormRequest(this).build();
+		PostFormRequest request = new PostFormRequest(this);
+		request.setResponseClazz(mResponseClazz);
+		request.setResponseInterceptor(mResponseInterceptor);
+		request.setFormMap(mFormMap);
+
+		initRequest(request);//初始化request
+		return request.build();
 	}
 
 	/**
@@ -69,14 +75,6 @@ public class PostFormBuilder extends RequestBuilder<PostFormBuilder> {
         }
 		return this;
 	}
-	
-	public Map<String, String> getFormMap() {
-		return mFormMap;
-	}
-
-	public JsonResponseInterceptor getResponseInterceptor() {
-		return mResponseInterceptor;
-	}
 
 	/**
 	 * 设置返回json数据拦截器，拦截返回数据预处理，可以设置自定义json解析库
@@ -86,10 +84,6 @@ public class PostFormBuilder extends RequestBuilder<PostFormBuilder> {
 	public PostFormBuilder responseInterceptor(JsonResponseInterceptor responseInterceptor) {
 		mResponseInterceptor = responseInterceptor;
 		return this;
-	}
-
-	public Class getResponseClazz() {
-		return mResponseClazz;
 	}
 
 	/**

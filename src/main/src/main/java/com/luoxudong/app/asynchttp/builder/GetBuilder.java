@@ -29,11 +29,12 @@ public class GetBuilder extends RequestBuilder<GetBuilder> {
 
 	@Override
 	public AsyncHttpTask build() {
-		return new GetRequest(this).build();
-	}
+		GetRequest request = new GetRequest(this);
+		request.setResponseClazz(mResponseClazz);
+		request.setResponseInterceptor(mResponseInterceptor);
 
-	public JsonResponseInterceptor getResponseInterceptor() {
-		return mResponseInterceptor;
+		initRequest(request);//初始化request
+		return request.build();
 	}
 
 	/**
@@ -44,10 +45,6 @@ public class GetBuilder extends RequestBuilder<GetBuilder> {
 	public GetBuilder responseInterceptor(JsonResponseInterceptor responseInterceptor) {
 		mResponseInterceptor = responseInterceptor;
 		return this;
-	}
-
-	public Class getResponseClazz() {
-		return mResponseClazz;
 	}
 
 	/**

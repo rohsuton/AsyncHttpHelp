@@ -32,7 +32,6 @@ public class PostBytesRequest extends AsyncHttpRequest {
 	
 	public PostBytesRequest(PostBytesBuilder builder) {
 		super(builder);
-		mBuffer = builder.getBuffer();
 	}
 	
 	@Override
@@ -58,4 +57,7 @@ public class PostBytesRequest extends AsyncHttpRequest {
 		return mBuffer;
 	}
 
+	public void setBuffer(byte[] buffer) {
+		mBuffer = buffer;
+	}
 }

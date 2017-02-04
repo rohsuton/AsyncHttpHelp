@@ -35,8 +35,6 @@ public class GetRequest extends AsyncHttpRequest {
 
 	public GetRequest(GetBuilder builder) {
 		super(builder);
-		mResponseInterceptor = builder.getResponseInterceptor();
-		mResponseClazz = builder.getResponseClazz();
 	}
 
 	@Override
@@ -59,8 +57,15 @@ public class GetRequest extends AsyncHttpRequest {
 		return mResponseInterceptor;
 	}
 
+	public void setResponseInterceptor(JsonResponseInterceptor responseInterceptor) {
+		mResponseInterceptor = responseInterceptor;
+	}
+
 	public Class getResponseClazz() {
 		return mResponseClazz;
 	}
 
+	public void setResponseClazz(Class responseClazz) {
+		mResponseClazz = responseClazz;
+	}
 }

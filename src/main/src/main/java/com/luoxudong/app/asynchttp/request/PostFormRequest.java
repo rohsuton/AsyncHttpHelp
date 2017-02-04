@@ -38,9 +38,6 @@ public class PostFormRequest extends AsyncHttpRequest {
 	
 	public PostFormRequest(PostFormBuilder builder) {
 		super(builder);
-		mFormMap = builder.getFormMap();
-		mResponseInterceptor = builder.getResponseInterceptor();
-		mResponseClazz = builder.getResponseClazz();
 	}
 	
 	@Override
@@ -82,4 +79,15 @@ public class PostFormRequest extends AsyncHttpRequest {
 		return mResponseClazz;
 	}
 
+	public void setFormMap(Map<String, String> formMap) {
+		mFormMap = formMap;
+	}
+
+	public void setResponseInterceptor(JsonResponseInterceptor responseInterceptor) {
+		mResponseInterceptor = responseInterceptor;
+	}
+
+	public void setResponseClazz(Class responseClazz) {
+		mResponseClazz = responseClazz;
+	}
 }

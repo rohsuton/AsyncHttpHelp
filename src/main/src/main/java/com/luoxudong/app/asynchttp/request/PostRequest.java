@@ -39,10 +39,6 @@ public class PostRequest extends AsyncHttpRequest {
 
 	public PostRequest(PostBuilder builder) {
 		super(builder);
-		mBody = builder.getBody();
-		mContentType = builder.getContentType();
-		mResponseInterceptor = builder.getResponseInterceptor();
-		mResponseClazz = builder.getResponseClazz();
 	}
 
 	@Override
@@ -93,4 +89,11 @@ public class PostRequest extends AsyncHttpRequest {
 		return mResponseClazz;
 	}
 
+	public void setResponseInterceptor(JsonResponseInterceptor responseInterceptor) {
+		mResponseInterceptor = responseInterceptor;
+	}
+
+	public void setResponseClazz(Class responseClazz) {
+		mResponseClazz = responseClazz;
+	}
 }

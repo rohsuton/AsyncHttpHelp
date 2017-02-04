@@ -9,16 +9,14 @@
  */
 package com.luoxudong.app.asynchttp.builder;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.X509TrustManager;
-
 import android.text.TextUtils;
 
 import com.luoxudong.app.asynchttp.AsyncHttpConst;
 import com.luoxudong.app.asynchttp.AsyncHttpTask;
+import com.luoxudong.app.asynchttp.request.AsyncHttpRequest;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /** 
@@ -60,6 +58,19 @@ public abstract class RequestBuilder<T extends RequestBuilder<?>> {
         mHeaderParams = new ConcurrentHashMap<String, String>();
         mCookies = new ConcurrentHashMap<String, String>();
     }
+
+	protected void initRequest(AsyncHttpRequest request) {
+		request.setUrl(mUrl);
+		request.setMainThread(mMainThread);
+		request.setTag(mTag);
+		request.setUrlParams(mUrlParams);
+		request.setHeaderParams(mHeaderParams);
+		request.setCookies(mCookies);
+		request.setUserAgent(mUserAgent);
+		request.setConnectTimeout(mConnectTimeout);
+		request.setReadTimeout(mReadTimeout);
+		request.setWriteTimeout(mWriteTimeout);
+	}
 
     public T url(String url) {
     	mUrl = url;
@@ -206,44 +217,6 @@ public abstract class RequestBuilder<T extends RequestBuilder<?>> {
 	public T userAgent(String userAgent) {
 		mUserAgent = userAgent;
 		return (T)this;
-	}
-
-	public String getUrl() {
-		return mUrl;
-	}
-
-	public String getTag() {
-		return mTag;
-	}
-
-	public boolean isMainThread() { return mMainThread; }
-
-	public Map<String, String> getUrlParams() {
-		return mUrlParams;
-	}
-
-	public Map<String, String> getHeaderParams() {
-		return mHeaderParams;
-	}
-
-	public Map<String, String> getCookies() {
-		return mCookies;
-	}
-
-	public String getUserAgent() {
-		return mUserAgent;
-	}
-
-	public int getConnectTimeout() {
-		return mConnectTimeout;
-	}
-
-	public int getReadTimeout() {
-		return mReadTimeout;
-	}
-
-	public int getWriteTimeout() {
-		return mWriteTimeout;
 	}
 
 	public abstract AsyncHttpTask build();

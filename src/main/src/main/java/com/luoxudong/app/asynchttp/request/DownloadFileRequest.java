@@ -40,11 +40,10 @@ public class DownloadFileRequest extends AsyncHttpRequest {
 
     public DownloadFileRequest(DownloadFileBuilder builder) {
         super(builder);
-        mOffset = builder.getOffset();
-        mLength = builder.getLength();
-        mFileDir = builder.getFileDir();
-        mFileName = builder.getFileName();
+    }
 
+    @Override
+    public AsyncHttpTask build() {
         //断点下载
         if (mOffset > 0 || mLength > 0) {
             String rangeValue = "bytes=" + mOffset + "-";
@@ -53,12 +52,9 @@ public class DownloadFileRequest extends AsyncHttpRequest {
                 rangeValue += (mOffset + mLength);
             }
 
-            builder.getHeaderParams().put("range", rangeValue);
+            mHeaderParams.put("range", rangeValue);
         }
-    }
 
-    @Override
-    public AsyncHttpTask build() {
         initRequest();
         return new AsyncHttpTask(this);
     }
@@ -71,5 +67,21 @@ public class DownloadFileRequest extends AsyncHttpRequest {
     @Override
     public ResponseHandler buildResponseHandler(RequestCallable callable) {
         return new DownloadFileResponseHandler(mFileDir, mFileName, mOffset, callable);
+    }
+
+    public void setOffset(long offset) {
+        mOffset = offset;
+    }
+
+    public void setLength(long length) {
+        mLength = length;
+    }
+
+    public void setFileDir(String fileDir) {
+        mFileDir = fileDir;
+    }
+
+    public void setFileName(String fileName) {
+        mFileName = fileName;
     }
 }

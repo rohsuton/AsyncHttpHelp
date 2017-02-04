@@ -44,7 +44,12 @@ public class UploadFileBuilder extends RequestBuilder<UploadFileBuilder> {
 	
 	@Override
 	public AsyncHttpTask build() {
-		return new UploadFileRequest(this).build();
+		UploadFileRequest request = new UploadFileRequest(this);
+		request.setFormMap(mFormMap);
+		request.setFileMap(mFileMap);
+
+		initRequest(request);//初始化request
+		return request.build();
 	}
 	
 	public UploadFileBuilder addFormParam(String key, String value) {
@@ -77,13 +82,5 @@ public class UploadFileBuilder extends RequestBuilder<UploadFileBuilder> {
 			addFile(entry.getKey(), entry.getValue());
         }
 		return this;
-	}
-	
-	public Map<String, String> getFormMap() {
-		return mFormMap;
-	}
-	
-	public Map<String, FileWrapper> getFileMap() {
-		return mFileMap;
 	}
 }
