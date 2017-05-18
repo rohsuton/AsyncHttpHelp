@@ -69,7 +69,12 @@ public class SetCookieCache implements CookieCache {
 
         @Override
         public void remove() {
-            iterator.remove();
+            try {
+                iterator.remove();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
     }
 }

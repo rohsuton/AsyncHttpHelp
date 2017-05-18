@@ -42,9 +42,25 @@ public class PersistentCookieJar implements ClearableCookieJar {
 
     @Override
     synchronized public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
+        List<Cookie> cookiesToRemove = new ArrayList<>();
+        if (cookies != null) {//删除重复的
+            for (Cookie cookie : cookies) {
+                for (Iterator<Cookie> it = cache.iterator(); it.hasNext(); ) {
+                    Cookie currentCookie = it.next();
+
+                    if (cookie.name().equals(currentCookie.name())) {
+                        cookiesToRemove.add(currentCookie);
+                        it.remove();
+                    }
+                }
+            }
+        }
+
         cache.addAll(cookies);
 
+
         if (persistor != null) {
+            persistor.removeAll(cookiesToRemove);
             persistor.saveAll(filterPersistentCookies(cookies));
         }
     }
