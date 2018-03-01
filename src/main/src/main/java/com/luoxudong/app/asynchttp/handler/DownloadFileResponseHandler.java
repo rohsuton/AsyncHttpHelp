@@ -154,6 +154,7 @@ public class DownloadFileResponseHandler extends ResponseHandler {
                 }
             }
 
+            sendTransferingMessage(offset, offset);
             sendSuccessMessage(response.headers(), null);
 
         } catch (IOException e) {
@@ -252,6 +253,7 @@ public class DownloadFileResponseHandler extends ResponseHandler {
         }
 
         if (offset == totalLength) {//下载完成
+            sendTransferingMessage(totalLength, totalLength);
             sendSuccessMessage(response.headers(), null);
         } else if (offset > totalLength) {
             sendFailureMessage(AsyncHttpExceptionCode.defaultExceptionCode.getErrorCode(), new AsyncHttpException("本地文件长度超过总长度!"));

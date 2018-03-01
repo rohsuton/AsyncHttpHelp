@@ -11,6 +11,8 @@
  */
 package com.luoxudong.app.asynchttp.https;
 
+import android.util.Log;
+
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;

@@ -11,6 +11,7 @@ package com.luoxudong.app.asynchttp.builder;
 
 import android.text.TextUtils;
 
+import com.luoxudong.app.asynchttp.AsyncHttpClient;
 import com.luoxudong.app.asynchttp.AsyncHttpConst;
 import com.luoxudong.app.asynchttp.AsyncHttpTask;
 import com.luoxudong.app.asynchttp.request.AsyncHttpRequest;
@@ -28,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * </pre>
  */
 public abstract class RequestBuilder<T extends RequestBuilder<?>> {
+	/** http请求实例 */
+	private AsyncHttpClient mAsyncHttpClient = null;
 	/** URL */
 	protected String mUrl = null;
 	/** tag标签 */
@@ -60,6 +63,7 @@ public abstract class RequestBuilder<T extends RequestBuilder<?>> {
     }
 
 	protected void initRequest(AsyncHttpRequest request) {
+		request.setAsyncHttpClient(mAsyncHttpClient);
 		request.setUrl(mUrl);
 		request.setMainThread(mMainThread);
 		request.setTag(mTag);
@@ -72,6 +76,10 @@ public abstract class RequestBuilder<T extends RequestBuilder<?>> {
 		request.setWriteTimeout(mWriteTimeout);
 	}
 
+	public T asyncHttpClient(AsyncHttpClient asyncHttpClient) {
+		mAsyncHttpClient = asyncHttpClient;
+		return (T)this;
+	}
     public T url(String url) {
     	mUrl = url;
     	return (T)this;

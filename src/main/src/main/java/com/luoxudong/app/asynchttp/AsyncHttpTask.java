@@ -118,7 +118,12 @@ public class AsyncHttpTask {
 		mResponseHandler.setMainThread(mHttpRequest.isMainThread());
 
     	//重设httpclient配置
-    	OkHttpClient okHttpClient = AsyncHttpUtil.getInstance().getHttpClient().getOkHttpClient();
+		OkHttpClient okHttpClient = null;
+		if (mHttpRequest.getAsyncHttpClient() == null) {//如果没有配置http实例则使用默认的
+			okHttpClient = AsyncHttpUtil.getHttpClient().getOkHttpClient();
+		} else {
+			okHttpClient = mHttpRequest.getAsyncHttpClient().getOkHttpClient();
+		}
 
 		if (callable != null) {
 			callable.setId(mHttpRequest.getId());

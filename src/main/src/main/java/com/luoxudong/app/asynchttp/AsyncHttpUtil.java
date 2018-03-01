@@ -16,7 +16,14 @@ import com.luoxudong.app.asynchttp.builder.PostBytesBuilder;
 import com.luoxudong.app.asynchttp.builder.PostFormBuilder;
 import com.luoxudong.app.asynchttp.builder.PostJsonBuilder;
 import com.luoxudong.app.asynchttp.builder.UploadFileBuilder;
+import com.luoxudong.app.asynchttp.https.MySslSocketFactory;
+import com.luoxudong.app.asynchttp.https.SSLParams;
 import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
+
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 
@@ -29,32 +36,10 @@ import okhttp3.Call;
  * </pre>
  */
 public class AsyncHttpUtil {
-	/** 单例 */
-	private volatile static AsyncHttpUtil sInstance = null;
 	/** 全局使用同一个AsyncHttpClient对象 */
-	private AsyncHttpClient mHttpClient = null;
+	private static AsyncHttpClient mHttpClient = new AsyncHttpClient();
 
 	public static long sStartTime = System.nanoTime();
-
-	public static void main(String[] args) {
-
-	}
-
-	/**
-	 * 初始化AsyncHttpClient
-	 * @return
-     */
-	public static AsyncHttpClient initHttpClient() {
-		return getInstance().getHttpClient();
-	}
-
-	/**
-	 * 初始化AsyncHttpClient
-	 * @return
-	 */
-	public static AsyncHttpUtil getInstance() {
-		return initHttpClient(null);
-	}
 
 	/**
 	 * 普通get请求
@@ -120,6 +105,76 @@ public class AsyncHttpUtil {
 	}
 
 	/**
+	 * 创建一个新的http客户端
+	 * @return
+	 */
+	public static AsyncHttpClient newAsyncHttpClient() {
+		return new AsyncHttpClient();
+	}
+
+	/**
+	 * 增加证书
+	 * @param cerDatas 证书字符串
+	 */
+	public static void setSslSocketFactory(String[] cerDatas) {
+		setSslSocketFactory(getHttpClient(), cerDatas);
+	}
+
+	public static void setSslSocketFactory(AsyncHttpClient asyncHttpClients, String[] cerDatas) {
+		if (asyncHttpClients == null) {
+			return;
+		}
+		asyncHttpClients.setSslSocketFactory(cerDatas);
+	}
+
+	/**
+	 * 增加证书
+	 * @param cerStreams 证书数据流
+	 */
+	public static void setSslSocketFactory(InputStream[] cerStreams) {
+		setSslSocketFactory(getHttpClient(), cerStreams);
+	}
+
+	public static void setSslSocketFactory(AsyncHttpClient asyncHttpClients,InputStream[] cerStreams) {
+		if (asyncHttpClients == null) {
+			return;
+		}
+
+		asyncHttpClients.setSslSocketFactory(cerStreams);
+	}
+
+	/**
+	 * 信任所有证书，不安全
+	 */
+	public static void setNoSafeSslSocketFactory() {
+		setSslSocketFactory((String[])null);
+	}
+
+	public static void setNoSafeSslSocketFactory(AsyncHttpClient asyncHttpClients) {
+		if (asyncHttpClients == null) {
+			return;
+		}
+
+		setSslSocketFactory(asyncHttpClients, (String[])null);
+	}
+
+	/**
+	 * 设置UA
+	 * @param userAgent
+	 */
+	public static void setUserAgent(String userAgent) {
+		setUserAgent(getHttpClient(), userAgent);
+	}
+
+	public static void setUserAgent(AsyncHttpClient asyncHttpClients,String userAgent) {
+		if (asyncHttpClients == null) {
+			return;
+		}
+
+		asyncHttpClients.userAgent(userAgent).build();
+	}
+
+	/**
 	 * 隐藏日志
 	 */
 	public static void disableLog() {
@@ -131,7 +186,7 @@ public class AsyncHttpUtil {
 	 * @param tag
      */
 	public static void cancelTag(String tag) {
-		AsyncHttpClient asyncHttpClient = getInstance().getHttpClient();
+		AsyncHttpClient asyncHttpClient = getHttpClient();
 		for (Call call : asyncHttpClient.getOkHttpClient().dispatcher().queuedCalls()) {
 			if (tag.equals(call.request().tag())) {
 				call.cancel();
@@ -149,7 +204,7 @@ public class AsyncHttpUtil {
 	 * 中断所有请求
 	 */
 	public static void cancelAll() {
-		AsyncHttpClient asyncHttpClient = getInstance().getHttpClient();
+		AsyncHttpClient asyncHttpClient = getHttpClient();
 		for (Call call : asyncHttpClient.getOkHttpClient().dispatcher().queuedCalls()) {
 			call.cancel();
 		}
@@ -158,7 +213,6 @@ public class AsyncHttpUtil {
 			call.cancel();
 		}
 	}
-
 
 	private AsyncHttpUtil(AsyncHttpClient httpClient) {
 		if (httpClient == null) {
@@ -169,27 +223,18 @@ public class AsyncHttpUtil {
 	}
 
 	/**
-	 * 初始化自定义HttpClient
-	 * @param httpClient
+	 * 获取HttpClient
 	 * @return
 	 */
-	private static AsyncHttpUtil initHttpClient(AsyncHttpClient httpClient) {
-		if (sInstance == null) {
+	public static AsyncHttpClient getHttpClient() {
+		if (mHttpClient == null) {
 			synchronized (AsyncHttpUtil.class) {
-				if (sInstance == null) {
-					sInstance = new AsyncHttpUtil(httpClient);
+				if (mHttpClient == null) {
+					mHttpClient = new AsyncHttpClient();
 				}
 			}
 		}
 
-		return sInstance;
-	}
-
-	/**
-	 * 获取HttpClient
-	 * @return
-	 */
-	public AsyncHttpClient getHttpClient() {
 		return mHttpClient;
 	}
 }

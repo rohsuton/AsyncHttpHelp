@@ -12,6 +12,7 @@ package com.luoxudong.app.asynchttp.request;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import com.luoxudong.app.asynchttp.AsyncHttpClient;
 import com.luoxudong.app.asynchttp.AsyncHttpConst;
 import com.luoxudong.app.asynchttp.AsyncHttpTask;
 import com.luoxudong.app.asynchttp.AsyncHttpUtil;
@@ -39,7 +40,8 @@ import okhttp3.Request;
  */
 public abstract class AsyncHttpRequest {
 	private long mId = 0;
-
+	/** http请求实例 */
+	private AsyncHttpClient mAsyncHttpClient = null;
 	/** URL */
 	protected String mUrl = null;
 	/** 是否在主线程中执行 */
@@ -137,6 +139,10 @@ public abstract class AsyncHttpRequest {
         mBuilder.headers(headerBuilder.build());
 	}
 
+	public AsyncHttpClient getAsyncHttpClient() {
+		return mAsyncHttpClient;
+	}
+
 	public long getId() {
 		return mId;
 	}
@@ -167,6 +173,10 @@ public abstract class AsyncHttpRequest {
 		return mWriteTimeout;
 	}
 
+
+	public void setAsyncHttpClient(AsyncHttpClient asyncHttpClient) {
+		mAsyncHttpClient = asyncHttpClient;
+	}
 
 	public void setUrl(String url) {
 		mUrl = url;

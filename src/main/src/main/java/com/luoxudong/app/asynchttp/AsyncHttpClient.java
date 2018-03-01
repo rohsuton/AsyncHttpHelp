@@ -11,19 +11,24 @@ package com.luoxudong.app.asynchttp;
 
 import android.text.TextUtils;
 
-import java.util.concurrent.TimeUnit;
-
-import okhttp3.CookieJar;
-import okhttp3.OkHttpClient;
-
 import com.luoxudong.app.asynchttp.cookie.PersistentCookieJar;
 import com.luoxudong.app.asynchttp.cookie.cache.SetCookieCache;
 import com.luoxudong.app.asynchttp.https.MySslSocketFactory;
 import com.luoxudong.app.asynchttp.https.SSLParams;
+import com.luoxudong.app.asynchttp.https.UnSafeHostnameVerifier;
 import com.luoxudong.app.asynchttp.interceptor.UserAgentInterceptor;
+
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
+
+import okhttp3.CookieJar;
+import okhttp3.OkHttpClient;
 
 /** 
  * ClassName: AsyncHttpClient
@@ -45,14 +50,15 @@ public class AsyncHttpClient {
 	private String mUserAgent = null;
 	
 	public AsyncHttpClient() {
-		SSLParams sslParams = new MySslSocketFactory().getSslSocketFactory(null, null, null);
+		//SSLParams sslParams = new MySslSocketFactory().getSslSocketFactory(null, null, null);
 		mOkHttpClient = new OkHttpClient.Builder()
 		.connectTimeout(AsyncHttpConst.DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
 		.readTimeout(AsyncHttpConst.DEFAULT_SO_TIMEOUT, TimeUnit.MILLISECONDS)
 		.writeTimeout(AsyncHttpConst.DEFAULT_SO_TIMEOUT, TimeUnit.MILLISECONDS)
 		.addInterceptor(new UserAgentInterceptor())
 		.cookieJar(new PersistentCookieJar(new SetCookieCache(), null))
-		.sslSocketFactory(sslParams.getSSLSocketFactory(), sslParams.getTrustManager())
+		//.sslSocketFactory(sslParams.getSSLSocketFactory(), sslParams.getTrustManager())
+		//.hostnameVerifier(new UnSafeHostnameVerifier())
 		.build();
 	}
 
@@ -61,6 +67,27 @@ public class AsyncHttpClient {
 		mTrustManager = trustManager;
 		return this;
 	}
+
+    public void setSslSocketFactory(String[] cerDatas) {
+        try {
+            List<InputStream> cerList = new ArrayList<InputStream>();
+            InputStream[] cerStreams = null;
+            if (cerDatas != null && cerDatas.length > 0) {
+                for (String cer : cerDatas) {
+                    InputStream is = new java.io.ByteArrayInputStream(cer.getBytes("UTF-8"));
+                    cerList.add(is);
+                }
+                cerStreams = cerList.toArray(new InputStream[cerList.size()]);
+            }
+            setSslSocketFactory(cerStreams);
+        } catch (UnsupportedEncodingException e) {
+
+        }
+    }
+    public void setSslSocketFactory(InputStream[] cerStreams) {
+        SSLParams sslParams = new MySslSocketFactory().getSslSocketFactory(cerStreams, null, null);
+        sslSocketFactory(sslParams.getSSLSocketFactory(), sslParams.getTrustManager()).build();
+    }
 
 	public AsyncHttpClient cookieJar(CookieJar cookieJar) {
 		mCookieJar = cookieJar;
@@ -78,6 +105,8 @@ public class AsyncHttpClient {
 		if (mSslSocketFactory != null && mTrustManager != null) {
 			builder.sslSocketFactory(mSslSocketFactory, mTrustManager);
 		}
+
+        builder.hostnameVerifier(new UnSafeHostnameVerifier());
 
 		if (mCookieJar != null) {
 			builder.cookieJar(mCookieJar);

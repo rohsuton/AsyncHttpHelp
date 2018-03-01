@@ -18,6 +18,7 @@ package com.luoxudong.app.asynchttp.cookie;
 
 import com.luoxudong.app.asynchttp.cookie.cache.CookieCache;
 import com.luoxudong.app.asynchttp.cookie.persistence.CookiePersistor;
+import com.luoxudong.app.asynchttp.utils.AsyncHttpLog;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,7 +49,7 @@ public class PersistentCookieJar implements ClearableCookieJar {
                 for (Iterator<Cookie> it = cache.iterator(); it.hasNext(); ) {
                     Cookie currentCookie = it.next();
 
-                    if (cookie.name().equals(currentCookie.name())) {
+                    if (currentCookie.matches(url) && cookie.name().equalsIgnoreCase(currentCookie.name())) {
                         cookiesToRemove.add(currentCookie);
                         it.remove();
                     }
@@ -87,7 +88,6 @@ public class PersistentCookieJar implements ClearableCookieJar {
             if (isCookieExpired(currentCookie)) {
                 cookiesToRemove.add(currentCookie);
                 it.remove();
-
             } else if (currentCookie.matches(url)) {
                 validCookies.add(currentCookie);
             }
