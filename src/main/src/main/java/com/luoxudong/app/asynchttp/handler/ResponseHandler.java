@@ -91,8 +91,10 @@ public class ResponseHandler {
     protected void parseResponse(Response response) {
     	try {
 			byte[] buffer = response.body().bytes();
+            Headers headers = response.headers();
+            response.close();
 
-			sendSuccessMessage(response.headers(), buffer);
+			sendSuccessMessage(headers, buffer);
 		} catch (IOException e) {
 			sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), e);
 		}

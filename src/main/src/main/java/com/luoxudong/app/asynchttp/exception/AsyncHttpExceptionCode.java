@@ -32,7 +32,8 @@ public enum AsyncHttpExceptionCode {
 	serviceAddrError(-10000 - 13),//服务器地址错误
 	connectTimeoutException(-10000 - 14),//连接超时
 	invalidDownloadLength(-10000 - 15),//下载文件长度错误
-	urlIsNull(-10000 - 16);//url为空
+	urlIsNull(-10000 - 16),//url为空
+	sslException(-10000 - 17);//ssl证书握手失败
 	
 	private AsyncHttpExceptionCode(int errorCode)
 	{

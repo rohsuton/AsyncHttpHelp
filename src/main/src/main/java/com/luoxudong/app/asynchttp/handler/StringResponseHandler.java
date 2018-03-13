@@ -36,6 +36,7 @@ public class StringResponseHandler extends ResponseHandler {
 	
 	@Override
 	protected void onSuccess(byte[] buffer) {
+		super.onSuccess(buffer);
 		try {
 			onSuccess(buffer == null ? null : new String(buffer, AsyncHttpConst.HTTP_ENCODING));
 		} catch (UnsupportedEncodingException e) {

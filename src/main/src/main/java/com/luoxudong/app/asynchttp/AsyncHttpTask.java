@@ -22,7 +22,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -40,6 +44,7 @@ import okhttp3.Response;
  * Date: 2015年7月13日 下午5:01:39
  */
 public class AsyncHttpTask {
+	private static final ExecutorService EXECUTOR_SERVICE  = Executors.newCachedThreadPool();
 	/** 请求 */
     private AsyncHttpRequest mHttpRequest = null;
     
@@ -61,7 +66,30 @@ public class AsyncHttpTask {
 	 * @param callable
 	 */
 	public long request(final RequestCallable callable) {
-		try {
+		initCallable(callable);
+		EXECUTOR_SERVICE.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					mResponseHandler.sendStartMessage();//开始
+					Response response = mCall.execute();
+					mResponseHandler.sendFinishMessage();//结束
+					//请求数据成功
+					mResponseHandler.onResponseSucess(response);
+				} catch (IOException e) {
+					mResponseHandler.sendFinishMessage();//结束
+					if (e instanceof SSLHandshakeException) {
+						mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.sslException.getErrorCode(), e);
+					} else {
+						mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), e);
+					}
+				}
+
+			}
+		});
+
+
+		/*try {
 			initCallable(callable);
 			mResponseHandler.sendStartMessage();//开始
 			mCall.enqueue(new Callback() {
@@ -78,12 +106,16 @@ public class AsyncHttpTask {
 
 				@Override
 				public void onFailure(Call call, IOException e) {
-					mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), e);
+					if (e instanceof SSLHandshakeException) {
+						mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.sslException.getErrorCode(), e);
+					} else {
+						mResponseHandler.sendFailureMessage(AsyncHttpExceptionCode.httpResponseException.getErrorCode(), e);
+					}
 				}
 			});
 		} catch (AsyncHttpException e){
 			mResponseHandler.sendFailureMessage(e.getExceptionCode(), e);
-		}
+		}*/
 
 		return mHttpRequest.getId();
 	}
